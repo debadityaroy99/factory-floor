@@ -5,14 +5,22 @@ import Image from "next/image";
 
 interface ArchitectHeroProps {
   brandName?: string;
+  transparentBg?: boolean;
 }
 
-export default function ArchitectHero({ brandName = "[YOUR BRAND NAME]" }: ArchitectHeroProps) {
+export default function ArchitectHero({
+  brandName = "[YOUR BRAND NAME]",
+  transparentBg = false,
+}: ArchitectHeroProps) {
   const [currentBrand, setCurrentBrand] = useState(brandName);
   const [isEditingBrand, setIsEditingBrand] = useState(false);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#f4ebd7] text-[#292929] bg-drafting-grid selection:bg-[#124ead]/20 selection:text-[#124ead] flex flex-col justify-between overflow-x-hidden pt-3 pb-6 sm:pb-8">
+    <div
+      className={`relative min-h-screen w-full ${
+        transparentBg ? "bg-[#f4ebd7]/90 backdrop-blur-[2px]" : "bg-[#f4ebd7]"
+      } text-[#292929] bg-drafting-grid selection:bg-[#124ead]/20 selection:text-[#124ead] flex flex-col justify-between overflow-x-hidden pt-3 pb-6 sm:pb-8 transition-colors`}
+    >
       
       {/* =========================================================
           TOP BAR: COORDINATES + FLOATING DOCK NAVBAR + FACTORY LABEL
