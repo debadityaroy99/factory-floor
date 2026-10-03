@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
+import { FrameSequenceViewer } from "./FrameSequenceViewer";
 
 interface ArchitectHeroProps {
   brandName?: string;
@@ -228,16 +228,9 @@ export function ArchitectHero({
       <section className="relative z-10 w-full px-3 sm:px-6 md:px-8 lg:px-10 mt-1 sm:mt-2">
         <div className="relative w-full max-w-[1440px] mx-auto border border-[#292929] bg-[#f4ebd7] overflow-hidden shadow-sm">
           
-          {/* Edge-to-edge illustration preserving the exact blueprint graphic-novel composition */}
+          {/* Edge-to-edge illustration powered by 300-frame scroll-linked HTML5 canvas sequence */}
           <div className="relative w-full aspect-[2.1/1] sm:aspect-[2.8/1] md:aspect-[3.2/1] lg:aspect-[3.9/1] max-h-[520px]">
-            <Image
-              src="/hero-architect-cinematic-clean.png"
-              alt="Architect drafting on technical blueprint in modern industrial studio overlooking skyline"
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1440px) 96vw, 1440px"
-              className="object-cover object-center w-full h-full select-none"
-            />
+            <FrameSequenceViewer totalFrames={300} frameDir="/frames" framePrefix="frame-" />
 
             {/* Bottom-Right Microcopy Overlay matching reference screenshot */}
             <div className="absolute bottom-2.5 sm:bottom-3 right-2.5 sm:right-4 z-20 flex items-center gap-1.5 sm:gap-2 bg-[#024ab4]/80 md:bg-transparent px-2 py-0.5 rounded-[2px] backdrop-blur-[1px]">
