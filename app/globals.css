@@ -44,3 +44,16 @@ body {
 .font-handwriting {
   font-family: var(--font-handwriting), "Architects Daughter", "Caveat", cursive, sans-serif;
 }
+
+/* Outlined text stroke for title wipe animation */
+.text-stroke-outline {
+  -webkit-text-stroke: 1.2px #212121;
+  color: transparent !important;
+}
+
+@supports not (-webkit-text-stroke: 1px black) {
+  .text-stroke-outline {
+    color: rgba(33, 33, 33, 0.25) !important;
+  }
+}
+

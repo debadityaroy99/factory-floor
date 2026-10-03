@@ -275,6 +275,20 @@ export function ArchitectHero({
 }: ArchitectHeroProps) {
   const [currentBrand, setCurrentBrand] = useState(brandName);
   const [isEditingBrand, setIsEditingBrand] = useState(false);
+  const [isPastHero, setIsPastHero] = useState(false);
+
+  useEffect(() => {
+    const checkScroll = () => {
+      const track = document.getElementById("scroll-story-track");
+      if (track) {
+        const rect = track.getBoundingClientRect();
+        setIsPastHero(rect.bottom <= window.innerHeight * 0.2);
+      }
+    };
+    window.addEventListener("scroll", checkScroll, { passive: true });
+    checkScroll();
+    return () => window.removeEventListener("scroll", checkScroll);
+  }, []);
 
   return (
     <div className="relative w-full min-h-screen bg-[#f4ebd7] text-[#292929] selection:bg-[#124ead]/20 selection:text-[#124ead] overflow-x-hidden">
@@ -385,7 +399,11 @@ export function ArchitectHero({
       </header>
 
       {/* 3. FIXED BOTTOM-RIGHT MICROCOPY (Z-40) */}
-      <div className="fixed bottom-3 sm:bottom-4 right-3 sm:right-6 z-40 flex items-center gap-1.5 sm:gap-2 bg-[#024ab4]/85 px-2.5 py-1 rounded-[2px] backdrop-blur-[2px] pointer-events-none select-none">
+      <div
+        className={`fixed bottom-3 sm:bottom-4 right-3 sm:right-6 z-40 flex items-center gap-1.5 sm:gap-2 bg-[#024ab4]/85 px-2.5 py-1 rounded-[2px] backdrop-blur-[2px] pointer-events-none select-none transition-opacity duration-300 ${
+          isPastHero ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
         <span className="text-[10px] sm:text-[11px] md:text-[12px] font-sans text-white/95 tracking-normal font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
           From engineering drawings to actionable factory intelligence.
         </span>
