@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 
-interface ScrollSequenceCanvasProps {
+export interface ScrollSequenceCanvasProps {
   totalFrames?: number;
   frameDir?: string;
   framePrefix?: string;
@@ -10,7 +10,7 @@ interface ScrollSequenceCanvasProps {
   children?: React.ReactNode;
 }
 
-export default function ScrollSequenceCanvas({
+export function ScrollSequenceCanvas({
   totalFrames = 300,
   frameDir = "/frames",
   framePrefix = "frame-",
@@ -32,7 +32,7 @@ export default function ScrollSequenceCanvas({
   const loadedFlagsRef = useRef<boolean[]>([]);
 
   // Debug or progress indicator
-  const [loadCount, setLoadCount] = useState<number>(0);
+  const [, setLoadCount] = useState<number>(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
 
   // Format frame URL: e.g. /frames/frame-001.jpg
@@ -137,7 +137,7 @@ export default function ScrollSequenceCanvas({
     let loadedCounter = 0;
 
     const loadSingleFrame = (idx: number): Promise<HTMLImageElement> => {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         if (imagesRef.current[idx]) {
           resolve(imagesRef.current[idx]!);
           return;
@@ -159,7 +159,6 @@ export default function ScrollSequenceCanvas({
           resolve(img);
         };
         img.onerror = () => {
-          // If frame fails, resolve null so sequence continues
           resolve(img);
         };
       });
@@ -181,19 +180,16 @@ export default function ScrollSequenceCanvas({
 
     // Priority 3: Progressively buffer all remaining frames in chunks
     const preloadAll = async () => {
-      // First, buffer frames 2..15 for immediate scroll responsiveness
       for (let i = 2; i <= Math.min(15, totalFrames); i++) {
         if (!isMounted) return;
         await loadSingleFrame(i);
       }
 
-      // Then load milestone keyframes
       for (const kf of keyframes) {
         if (!isMounted) return;
         await loadSingleFrame(kf);
       }
 
-      // Finally fill all gaps in batched chunks of 5
       const remaining: number[] = [];
       for (let i = 1; i <= totalFrames; i++) {
         if (!loadedFlagsRef.current[i]) remaining.push(i);
@@ -217,7 +213,6 @@ export default function ScrollSequenceCanvas({
 
   // Main scroll tracker and animation loop
   useEffect(() => {
-    // Calculate scroll progress from parent container
     const handleScroll = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -233,7 +228,6 @@ export default function ScrollSequenceCanvas({
       targetFrameRef.current = target;
     };
 
-    // Handle window resize & canvas recalculation
     const handleResize = () => {
       handleScroll();
       needsRedrawRef.current = true;
@@ -243,7 +237,6 @@ export default function ScrollSequenceCanvas({
     window.addEventListener("resize", handleResize, { passive: true });
     handleScroll();
 
-    // Persistent animation loop with smooth lerp interpolation
     const lerpFactor = prefersReducedMotion ? 1.0 : 0.12;
 
     const renderLoop = () => {
@@ -316,3 +309,5 @@ export default function ScrollSequenceCanvas({
     </div>
   );
 }
+
+export default ScrollSequenceCanvas;

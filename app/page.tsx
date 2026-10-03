@@ -1,5 +1,7 @@
-import ArchitectHero from "./components/ArchitectHero";
-import ScrollSequenceCanvas from "./components/ScrollSequenceCanvas";
+"use client";
+
+import { ArchitectHero } from "./components/ArchitectHero";
+import { ScrollSequenceCanvas } from "./components/ScrollSequenceCanvas";
 
 export default function Home() {
   return (
