@@ -146,8 +146,8 @@ export function RunView({ fileName = "clevis.step", onCancel }: RunViewProps) {
       {/* Main Workspace + Right Agents Feed */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left / Center Stage Workspace with drafting paper grid background */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F6EFDB] bg-drafting-grid">
-          <div className="max-w-5xl mx-auto space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#F6EFDB] bg-drafting-grid">
+          <div className="w-full max-w-7xl mx-auto space-y-5">
             {/* Stage Inspection Bar */}
             {inspectedStage !== pipelineStage && (
               <div className="bg-[#FFC53D]/30 border-[1.5px] border-[#101418] rounded-lg px-3.5 py-2 text-xs font-mono flex items-center justify-between text-[#101418] shadow-hard-xs">

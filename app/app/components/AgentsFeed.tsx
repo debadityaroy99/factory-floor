@@ -24,9 +24,9 @@ export function AgentsFeed({ currentStageId, isRunning }: AgentsFeedProps) {
   }, [currentStageId, visibleLogs.length]);
 
   return (
-    <aside className="w-80 lg:w-[320px] shrink-0 bg-[#FBF6E9] border-l-[1.5px] border-[#101418] flex flex-col h-full overflow-hidden text-xs">
+    <aside className="w-80 lg:w-[320px] shrink-0 bg-white border-l-[1.5px] border-[#101418] flex flex-col h-full overflow-hidden text-xs">
       {/* Feed Header */}
-      <div className="px-4 py-3 border-b-[1.5px] border-[#101418] flex items-center justify-between bg-[#FBF6E9] shrink-0">
+      <div className="px-4 py-3 border-b-[1.5px] border-[#101418] flex items-center justify-between bg-white shrink-0">
         <div className="flex items-center gap-2">
           <span className="font-display font-semibold text-xs tracking-tight text-[#101418]">
             Agents Log
@@ -51,7 +51,7 @@ export function AgentsFeed({ currentStageId, isRunning }: AgentsFeedProps) {
       {/* Log entries container */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-3 space-y-3 font-mono select-text bg-[#FBF6E9]"
+        className="flex-1 overflow-y-auto p-3 space-y-3 font-mono select-text bg-white"
       >
         {visibleLogs.length === 0 ? (
           <div className="h-full flex items-center justify-center text-center text-[#101418]/50 font-mono p-4 text-xs">
@@ -64,7 +64,7 @@ export function AgentsFeed({ currentStageId, isRunning }: AgentsFeedProps) {
             return (
               <div
                 key={group.stageId}
-                className={`rounded-lg border-[1.5px] border-[#101418] transition-all bg-[#FFFBF0] ${
+                className={`rounded-lg border-[1.5px] border-[#101418] transition-all bg-white ${
                   isCurrent ? "shadow-hard-sm ring-1 ring-[#101418]" : "shadow-hard-xs"
                 } p-2.5 space-y-2`}
               >
@@ -121,7 +121,7 @@ export function AgentsFeed({ currentStageId, isRunning }: AgentsFeedProps) {
                           className={`rounded border border-[#101418] p-1.5 space-y-1 shadow-2xs font-mono text-xs transition-colors ${
                             isRunningLine
                               ? "bg-[#FFC53D]/40 border-l-[3px] border-l-[#101418]"
-                              : "bg-[#FFFBF0]"
+                              : "bg-white"
                           }`}
                         >
                           {entry.turn && (
@@ -141,7 +141,7 @@ export function AgentsFeed({ currentStageId, isRunning }: AgentsFeedProps) {
                           </div>
 
                           {entry.toolCallArgs && (
-                            <div className="text-[10px] text-[#101418] bg-[#F6EFDB] px-1 py-0.5 rounded break-all border border-[#101418]/30 font-mono">
+                            <div className="text-[10px] text-[#101418] bg-[#F9FAFB] px-1 py-0.5 rounded break-all border border-[#101418]/20 font-mono">
                               {entry.toolCallArgs}
                             </div>
                           )}
@@ -193,7 +193,7 @@ export function AgentsFeed({ currentStageId, isRunning }: AgentsFeedProps) {
       </div>
 
       {/* Feed Bottom Context Counter */}
-      <div className="px-3 py-2 border-t-[1.5px] border-[#101418] bg-[#FBF6E9] flex items-center justify-between font-mono text-[10px] text-[#101418]/70 shrink-0">
+      <div className="px-3 py-2 border-t-[1.5px] border-[#101418] bg-white flex items-center justify-between font-mono text-[10px] text-[#101418]/70 shrink-0">
         <span>Context window</span>
         <span className="font-mono font-bold text-[#101418]">93k / 2.0M tokens</span>
       </div>

@@ -127,7 +127,7 @@ export function DrawingSheet() {
   return (
     <div className="space-y-6">
       {/* Top Card: Sheet Header & Actions */}
-      <div className="w-full bg-[#FFFBF0] rounded-xl border-2 border-[#101418] p-5 sm:p-6 shadow-hard-sm">
+      <div className="w-full bg-white rounded-xl border-2 border-[#101418] p-5 sm:p-6 shadow-hard-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b-[1.5px] border-[#101418]/20">
           <div>
             <div className="flex items-center gap-2">
@@ -161,14 +161,14 @@ export function DrawingSheet() {
           </div>
         </div>
 
-        {/* SVG Drawing Canvas: Ink-on-Ivory */}
-        <div className="mt-5 p-3 sm:p-4 bg-[#F6EFDB] border-2 border-[#101418] rounded-lg overflow-x-auto flex justify-center shadow-inner">
-          <div className="w-[1000px] bg-[#FFFBF0] rounded border-2 border-[#101418] shadow-hard-xs select-none">
+        {/* SVG Drawing Canvas: White Background */}
+        <div className="mt-5 p-3 sm:p-5 bg-stone-100/70 border-2 border-[#101418] rounded-lg overflow-x-auto flex justify-center shadow-inner">
+          <div className="w-full min-w-[700px] max-w-6xl bg-white rounded border-2 border-[#101418] shadow-hard-xs select-none">
             <svg
               id="manufy-drawing-svg"
               viewBox="0 0 1200 840"
               className="w-full h-auto text-[#101418] font-sans"
-              style={{ backgroundColor: "#FFFBF0" }}
+              style={{ backgroundColor: "#ffffff" }}
             >
               <defs>
                 <marker
@@ -437,7 +437,7 @@ export function DrawingSheet() {
       </div>
 
       {/* Bottom Card: Layout Report / 14 Issues Table */}
-      <div className="w-full bg-[#FFFBF0] rounded-xl border-2 border-[#101418] p-5 sm:p-6 shadow-hard-sm">
+      <div className="w-full bg-white rounded-xl border-2 border-[#101418] p-5 sm:p-6 shadow-hard-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b-[1.5px] border-[#101418]/20">
           <div>
             <div className="flex items-center gap-2">
@@ -473,7 +473,7 @@ export function DrawingSheet() {
                 <th className="py-2.5 px-3 font-bold w-48 text-right">Resolution</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#101418]/15 bg-[#FFFBF0] font-sans">
+            <tbody className="divide-y divide-[#101418]/15 bg-white font-sans">
               {LAYOUT_ISSUES.map((issue) => (
                 <tr
                   key={issue.id}

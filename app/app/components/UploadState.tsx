@@ -60,12 +60,12 @@ export function UploadState({ onStartRun }: UploadStateProps) {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-8 sm:px-12 sm:py-10 flex flex-col items-center bg-[#FFFBF0]">
-      <div className="w-full max-w-[720px] text-left">
+      <div className="w-full max-w-4xl text-left">
         {/* Main Headings */}
         <h1 className="font-display text-2xl sm:text-[30px] font-bold text-[#101418] tracking-tight leading-snug mb-2">
           From STEP to a finished sheet
         </h1>
-        <p className="font-sans text-[14px] text-[#3C4356] leading-relaxed max-w-[580px] mb-8">
+        <p className="font-sans text-[14px] text-[#3C4356] leading-relaxed max-w-2xl mb-8">
           Upload one part. The pipeline opens it, projects six views, picks the ones a drawing
           needs, then three agents build the feature tree, choose the dimensions and lay out the sheet —
           every step streamed live.
