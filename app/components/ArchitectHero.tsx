@@ -2,12 +2,13 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import PlatformModeModal from "./PlatformModeModal";
 
 
 // =========================================================================
 // 1. FULL-SCREEN SCROLL CANVAS COMPONENT (Internal & Self-Contained)
 // =========================================================================
-function FullScreenCanvas({ totalFrames = 300 }: { totalFrames?: number }) {
+function FullScreenCanvas({ totalFrames = 183 }: { totalFrames?: number }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Animation & Frame tracking references
@@ -278,6 +279,8 @@ export function ArchitectHero({
   const [currentBrand, setCurrentBrand] = useState(brandName);
   const [isEditingBrand, setIsEditingBrand] = useState(false);
   const [isPastHero, setIsPastHero] = useState(false);
+  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
+  const exploreBtnRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const checkScroll = () => {
@@ -296,7 +299,7 @@ export function ArchitectHero({
     <div className="relative w-full min-h-screen bg-[#f4ebd7] text-[#292929] selection:bg-[#124ead]/20 selection:text-[#124ead] overflow-x-hidden">
       
       {/* 1. FIXED FULL-SCREEN HTML5 CANVAS (100vw x 100vh) */}
-      <FullScreenCanvas totalFrames={300} />
+      <FullScreenCanvas totalFrames={183} />
 
       {/* 2. FIXED TOP MARGINALIA & FLOATING NAVBAR (Z-40) */}
       <header className="fixed top-0 left-0 w-full z-40 pointer-events-none px-4 sm:px-8 md:px-12 pt-3">
@@ -378,8 +381,10 @@ export function ArchitectHero({
 
             {/* Right CTA Button */}
             <div className="pl-1 sm:pl-2">
-              <Link
-                href="/app"
+              <button
+                ref={exploreBtnRef}
+                type="button"
+                onClick={() => setIsModeModalOpen(true)}
                 className="group inline-flex items-center gap-2 bg-[#124ead] hover:bg-[#0d3b85] text-white text-[11px] sm:text-[12px] font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-[3px] transition-all shadow-sm active:scale-95 select-none cursor-pointer"
               >
                 <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#ff5500] rounded-[2px] flex items-center justify-center p-0.5 flex-shrink-0">
@@ -389,7 +394,7 @@ export function ArchitectHero({
                   </svg>
                 </div>
                 <span className="whitespace-nowrap tracking-normal">Explore Platform</span>
-              </Link>
+              </button>
             </div>
           </nav>
 
@@ -475,10 +480,17 @@ export function ArchitectHero({
 
         {/* The Transparent Scroll Track:
             Allows the full-screen canvas underneath to cover 100% of the viewport!
-            As the user scrolls through this area, the canvas scrubs through all 300 frames! */}
+            As the user scrolls through this area, the canvas scrubs through all 183 frames! */}
         <div className="w-full h-[400vh] pointer-events-none" />
 
       </div>
+
+      {/* Feature Selection Modal */}
+      <PlatformModeModal
+        isOpen={isModeModalOpen}
+        onClose={() => setIsModeModalOpen(false)}
+        buttonRef={exploreBtnRef}
+      />
     </div>
   );
 }

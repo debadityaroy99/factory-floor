@@ -19,6 +19,7 @@
   --color-paleblue: #E8EEFC;
   --color-sun: #FFC53D;
   --color-signal: #FF6B2C;
+  --color-butter: #FFF3C4;
 }
 
 @theme inline {
@@ -37,6 +38,7 @@
   --color-paleblue: #E8EEFC;
   --color-sun: #FFC53D;
   --color-signal: #FF6B2C;
+  --color-butter: #FFF3C4;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -154,4 +156,19 @@ body {
   .text-stroke-outline {
     color: rgba(33, 33, 33, 0.25) !important;
   }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUpFade 250ms ease-out forwards;
 }

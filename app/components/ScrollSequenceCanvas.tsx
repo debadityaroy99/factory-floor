@@ -11,7 +11,7 @@ export interface ScrollSequenceCanvasProps {
 }
 
 export function ScrollSequenceCanvas({
-  totalFrames = 300,
+  totalFrames = 183,
   frameDir = "/frames",
   framePrefix = "frame-",
   className = "",
