@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -7,6 +8,17 @@
   --charcoal: #292929;
   --cobalt: #124ead;
   --annotation-grey: #6b7280;
+  
+  /* Manufy Design System Colors */
+  --color-paper: #F6EFDB;
+  --color-sheet: #FFFBF0;
+  --color-cream: #FBF6E9;
+  --color-ink: #101418;
+  --color-royal: #1E43D8;
+  --color-midblue: #3E6BE0;
+  --color-paleblue: #E8EEFC;
+  --color-sun: #FFC53D;
+  --color-signal: #FF6B2C;
 }
 
 @theme inline {
@@ -15,9 +27,22 @@
   --color-parchment: #f4ebd7;
   --color-charcoal: #292929;
   --color-cobalt: #124ead;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-handwriting: var(--font-handwriting), "Architects Daughter", "Caveat", cursive, sans-serif;
+  
+  --color-paper: #F6EFDB;
+  --color-sheet: #FFFBF0;
+  --color-cream: #FBF6E9;
+  --color-ink: #101418;
+  --color-royal: #1E43D8;
+  --color-midblue: #3E6BE0;
+  --color-paleblue: #E8EEFC;
+  --color-sun: #FFC53D;
+  --color-signal: #FF6B2C;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-hand: "Caveat", cursive, sans-serif;
+  --font-handwriting: "Caveat", "Architects Daughter", cursive, sans-serif;
 }
 
 body {
@@ -29,7 +54,7 @@ body {
   padding: 0;
 }
 
-/* Architect Drafting Graph-Paper Grid */
+/* Architect Drafting Graph-Paper Grid (Landing Page) */
 .bg-drafting-grid {
   background-color: #f4ebd7;
   background-image: 
@@ -40,9 +65,83 @@ body {
   background-size: 18px 18px, 18px 18px, 90px 90px, 90px 90px;
 }
 
+/* Manufy Blueprint Graph-Paper Grid (/app background) */
+.bg-graphpaper {
+  background-color: #F6EFDB;
+  background-image: 
+    linear-gradient(to right, rgba(31, 58, 138, 0.10) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(31, 58, 138, 0.10) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Typography Helpers */
+.font-display {
+  font-family: "Space Grotesk", sans-serif;
+}
+.font-hand {
+  font-family: "Caveat", cursive, sans-serif;
+}
+.font-mono {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+/* Hard Offset Shadows */
+.shadow-hard {
+  box-shadow: 6px 6px 0 rgba(16, 20, 24, 0.9);
+}
+.shadow-hard-sm {
+  box-shadow: 4px 4px 0 #101418;
+}
+.shadow-hard-xs {
+  box-shadow: 2px 2px 0 #101418;
+}
+.shadow-btn {
+  box-shadow: 3px 3px 0 #101418;
+}
+
+/* Manufy Button Press Effect */
+.btn-royal {
+  background-color: #1E43D8;
+  color: #ffffff;
+  border: 2px solid #101418;
+  box-shadow: 3px 3px 0 #101418;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+}
+.btn-royal:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #101418;
+}
+.btn-royal:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #101418;
+}
+.btn-royal:disabled {
+  background-color: #E8EEFC !important;
+  color: rgba(16, 20, 24, 0.4) !important;
+  border-color: rgba(16, 20, 24, 0.3) !important;
+  box-shadow: 2px 2px 0 rgba(16, 20, 24, 0.2) !important;
+  cursor: not-allowed;
+}
+
+.btn-ivory {
+  background-color: #FFFBF0;
+  color: #101418;
+  border: 1.5px solid #101418;
+  box-shadow: 2px 2px 0 #101418;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+}
+.btn-ivory:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #101418;
+}
+.btn-ivory:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 0 0 0 #101418;
+}
+
 /* Handwritten / Architectural annotation font class */
 .font-handwriting {
-  font-family: var(--font-handwriting), "Architects Daughter", "Caveat", cursive, sans-serif;
+  font-family: "Caveat", "Architects Daughter", cursive, sans-serif;
 }
 
 /* Outlined text stroke for title wipe animation */
@@ -56,4 +155,3 @@ body {
     color: rgba(33, 33, 33, 0.25) !important;
   }
 }
-

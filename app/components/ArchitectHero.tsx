@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+
 
 // =========================================================================
 // 1. FULL-SCREEN SCROLL CANVAS COMPONENT (Internal & Self-Contained)
@@ -376,9 +378,9 @@ export function ArchitectHero({
 
             {/* Right CTA Button */}
             <div className="pl-1 sm:pl-2">
-              <a
-                href="#explore"
-                className="group inline-flex items-center gap-2 bg-[#124ead] hover:bg-[#0d3b85] text-white text-[11px] sm:text-[12px] font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-[3px] transition-all shadow-sm active:scale-95 select-none"
+              <Link
+                href="/app"
+                className="group inline-flex items-center gap-2 bg-[#124ead] hover:bg-[#0d3b85] text-white text-[11px] sm:text-[12px] font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-[3px] transition-all shadow-sm active:scale-95 select-none cursor-pointer"
               >
                 <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#ff5500] rounded-[2px] flex items-center justify-center p-0.5 flex-shrink-0">
                   <svg viewBox="0 0 14 14" className="w-full h-full text-white" fill="none" stroke="currentColor">
@@ -387,7 +389,7 @@ export function ArchitectHero({
                   </svg>
                 </div>
                 <span className="whitespace-nowrap tracking-normal">Explore Platform</span>
-              </a>
+              </Link>
             </div>
           </nav>
 
