@@ -223,6 +223,96 @@ export async function callGeminiJson<T>(params: {
 }
 
 /**
+ * Execute a plain-text prompt with Vertex AI Gemini.
+ * Used for Frontline Mode analytical summaries and reasoning over mock operational records.
+ */
+export async function callGeminiText(params: {
+  systemInstruction: string;
+  prompt: string;
+  temperature?: number;
+  timeoutMs?: number;
+  stageName?: string;
+  requestId?: string;
+}): Promise<{ text: string | null; latencyMs: number; error?: string }> {
+  const {
+    systemInstruction,
+    prompt,
+    temperature = 0.2,
+    timeoutMs = 25000,
+    stageName = "frontline-summary",
+    requestId,
+  } = params;
+
+  const client = getVertexClient();
+  if (!client) {
+    return {
+      text: null,
+      latencyMs: 0,
+      error: "Vertex AI client not initialized (mock mode or missing credentials)",
+    };
+  }
+
+  const startTime = Date.now();
+
+  try {
+    const generativeModel = client.getGenerativeModel({
+      model: config.vertexModel,
+      generationConfig: {
+        temperature,
+        maxOutputTokens: 8192,
+      },
+      systemInstruction: {
+        role: "system",
+        parts: [{ text: systemInstruction }],
+      },
+    });
+
+    const result = await executeWithRetry(
+      async () => {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error(`Vertex AI timed out after ${timeoutMs}ms`)), timeoutMs)
+        );
+        const callPromise = generativeModel.generateContent({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+        });
+        return Promise.race([callPromise, timeoutPromise]);
+      },
+      { stageName, requestId }
+    );
+
+    const latencyMs = Date.now() - startTime;
+    const rawText = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!rawText) {
+      throw new Error("Empty response returned by Vertex AI Gemini model.");
+    }
+
+    logInfo(`Vertex AI stage completed successfully`, {
+      service: "vertexai",
+      stageName,
+      requestId,
+      model: config.vertexModel,
+      latencyMs,
+      status: "SUCCESS",
+    });
+
+    return { text: rawText.trim(), latencyMs };
+  } catch (err) {
+    const latencyMs = Date.now() - startTime;
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    logError(`Vertex AI execution failed for ${stageName}`, err, {
+      service: "vertexai",
+      stageName,
+      requestId,
+      model: config.vertexModel,
+      latencyMs,
+      status: "FAILED",
+    });
+    return { text: null, latencyMs, error: errorMsg };
+  }
+}
+
+/**
  * Execute a multimodal prompt with Vertex AI Gemini (Images/PDFs + Text).
  */
 export async function callGeminiMultimodalJson<T>(params: {

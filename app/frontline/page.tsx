@@ -7,180 +7,18 @@ import { SystemMonitor } from "../components/SystemMonitor";
 // =========================================================================
 // TYPES & DATA
 // =========================================================================
-export type TicketStatus = "HIGH" | "IN PROGRESS" | "WAITING PARTS" | "OPEN";
+import {
+  PERSONAS,
+  FRONTLINE_GUARDRAIL_MESSAGE,
+  type Persona,
+  type Ticket,
+  type TicketStatus,
+} from "@/lib/mock/frontlineData";
+import { classifyFrontlineIntent } from "@/lib/frontline/router";
+import { formatFrontlinePlainText } from "@/lib/frontline/format";
 
-export interface Ticket {
-  code: string;
-  title: string;
-  status: TicketStatus;
-  meta: string;
-  icon: "wrench" | "thermometer" | "droplet" | "flask" | "gear" | "ruler" | "bolt" | "oil-drop" | "battery" | "clipboard";
-}
-
-export interface Persona {
-  id: string;
-  firstName: string;
-  name: string;
-  initials: string;
-  avatarColor: string;
-  avatarTextColor?: string;
-  role: string;
-  shift: string;
-  station?: string;
-  subline: string;
-  greeting: string;
-  assigneeName: string;
-  tickets: Ticket[];
-}
-
-export const PERSONAS: Persona[] = [
-  {
-    id: "marcus",
-    firstName: "Marcus",
-    name: "Marcus T.",
-    initials: "MT",
-    avatarColor: "#1E43D8", // royal
-    avatarTextColor: "#FFFFFF",
-    role: "Maintenance",
-    shift: "Shift 2",
-    subline: "3 active tickets · Press 3 is still drifting · Tool Crib B is low on inserts",
-    greeting: "Morning. I'm watching Press 3, the CNC bay and Tool Crib B. Ask me anything the floor has ever fixed — or I'll flag what drifts.",
-    assigneeName: "Devin",
-    tickets: [
-      {
-        code: "W-3321",
-        title: "Fix the steel bracket loosening — Engine Line 2",
-        status: "HIGH",
-        meta: "DUE TODAY 14:00",
-        icon: "wrench",
-      },
-      {
-        code: "W-3318",
-        title: "Hydraulic temp 13° over spec — Press 3 · Line 2",
-        status: "IN PROGRESS",
-        meta: "STARTED 09:12",
-        icon: "thermometer",
-      },
-      {
-        code: "W-3307",
-        title: "CNC-3 coolant PSI drop — check pump seal",
-        status: "WAITING PARTS",
-        meta: "SEAL KIT ETA THU",
-        icon: "droplet",
-      },
-    ],
-  },
-  {
-    id: "priya",
-    firstName: "Priya",
-    name: "Priya S.",
-    initials: "PS",
-    avatarColor: "#FFC53D", // sun
-    avatarTextColor: "#101418", // ink
-    role: "CNC Operator",
-    shift: "Shift 2",
-    station: "Station 4",
-    subline: "1 cert pending · Station 4 is running Job 2214",
-    greeting: "Hi Priya. Station 4 is on Job 2214, and the chemical handling cert is the only thing between you and solo changeovers. Ask me anything.",
-    assigneeName: "Marcus",
-    tickets: [
-      {
-        code: "T-118",
-        title: "Finish chemical handling cert — 6 steps",
-        status: "IN PROGRESS",
-        meta: "MODULE 4 OF 6 · DUE THIS SHIFT",
-        icon: "flask",
-      },
-      {
-        code: "W-3319",
-        title: "Station 4 changeover check — Job 2214",
-        status: "OPEN",
-        meta: "STARTS 13:00",
-        icon: "gear",
-      },
-      {
-        code: "W-3320",
-        title: "Log insert wear for Tool Crib B",
-        status: "OPEN",
-        meta: "CNMG 432 · MIC IN CRIB B",
-        icon: "ruler",
-      },
-    ],
-  },
-  {
-    id: "devin",
-    firstName: "Devin",
-    name: "Devin R.",
-    initials: "DR",
-    avatarColor: "#3E6BE0", // midblue
-    avatarTextColor: "#FFFFFF",
-    role: "Senior Maintenance",
-    shift: "Shift 1",
-    subline: "2 follow-ups from Shift 1 · Press oil service coming due",
-    greeting: "Morning Devin. Shift 1 left you two follow-ups and a press service coming due. Ask me anything.",
-    assigneeName: "Marcus",
-    tickets: [
-      {
-        code: "W-3304",
-        title: "Allen-Bradley fault E-04 — verify reset",
-        status: "IN PROGRESS",
-        meta: "RESET LOGGED APR 06",
-        icon: "bolt",
-      },
-      {
-        code: "W-3315",
-        title: "Press oil service at 1,500 hrs — prep parts",
-        status: "OPEN",
-        meta: "ISO 46 · CAGE D HAS 2",
-        icon: "oil-drop",
-      },
-      {
-        code: "W-3311",
-        title: "Forklift battery rotation audit",
-        status: "OPEN",
-        meta: "BANK A → C · EVERY TUES",
-        icon: "battery",
-      },
-    ],
-  },
-  {
-    id: "dana",
-    firstName: "Dana",
-    name: "Dana K.",
-    initials: "DK",
-    avatarColor: "#FF6B2C", // signal
-    avatarTextColor: "#FFFFFF",
-    role: "Stores & Purchasing",
-    shift: "Tool Crib B",
-    station: "Tool Crib B",
-    subline: "1 PO waiting on you · 2 items under reorder point",
-    greeting: "Hi Dana. One PO is waiting on your approval and two items are under reorder point. Ask me anything.",
-    assigneeName: "Marcus",
-    tickets: [
-      {
-        code: "P-1042",
-        title: "Approve PO-1042 — CNMG inserts ×50",
-        status: "HIGH",
-        meta: "MSC INDUSTRIAL · NET-30",
-        icon: "clipboard",
-      },
-      {
-        code: "W-3322",
-        title: "Reorder 6205-2RS bearings — 2 left",
-        status: "OPEN",
-        meta: "LAST USED APR 02",
-        icon: "gear",
-      },
-      {
-        code: "W-3323",
-        title: "Cage D ISO 46 stocktake",
-        status: "OPEN",
-        meta: "SHOWS 2 · VERIFY FLOOR",
-        icon: "droplet",
-      },
-    ],
-  },
-];
+export { PERSONAS };
+export type { Persona, Ticket, TicketStatus };
 
 type MessageType =
   | { type: "user"; text: string }
@@ -739,239 +577,186 @@ export default function FrontlinePage() {
     "Stock check: CNMG inserts",
   ];
 
+  // Centralized route executor across chat input and home launcher
+  const executeRoute = async (raw: string) => {
+    setIsTyping(true);
+
+    const decision = classifyFrontlineIntent(raw, {
+      canApprovePo,
+      currentPersonaId: currentPersona.id,
+    });
+
+    // PATH_A: Existing supported mock interactions
+    if (decision.path === "PATH_A") {
+      setTimeout(() => {
+        setIsTyping(false);
+
+        if (decision.scenario === "approve") {
+          setCanApprovePo(false);
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "outcome_pill",
+              text: "✓ PO-1042 sent, arrives Thursday",
+            },
+          ]);
+        } else if (decision.scenario === "oil_history") {
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "agent_text",
+              text: "Here's the last change — straight from the floor record.",
+              showLabel: true,
+            },
+            {
+              type: "history_card",
+            },
+          ]);
+        } else if (decision.scenario === "equipment_drift") {
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "alert",
+              text: "Two things nobody has reported yet.",
+            },
+            {
+              type: "plan_turn",
+              checklist: [
+                "Flag the drift: Press 3 · Line 2",
+                "Create work order W-3318",
+                `Text ${currentPersona.assigneeName} the fix history`,
+                "Save the fix to knowledge",
+              ],
+              ackText: `${currentPersona.firstName} acknowledged, ETA 10 min`,
+              outcomeText: "✓ Fix saved to the knowledge base",
+            },
+          ]);
+        } else if (decision.scenario === "training") {
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "training_card",
+            },
+            {
+              type: "alert",
+              text: "Station 4 needs the cert — nobody has scheduled it",
+            },
+            {
+              type: "agent_text",
+              text: "Ready for chemical handling? Six short steps with a quiz — I'll check each one as you go.",
+              showLabel: false,
+            },
+            {
+              type: "outcome_pill",
+              text: "✓ Module assigned, verified step by step",
+            },
+          ]);
+        } else if (decision.scenario === "inventory_stock") {
+          setCanApprovePo(true);
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: "live_count_card",
+              showApproveBtn: true,
+            },
+            {
+              type: "alert",
+              text: "Below the reorder point — nobody has ordered",
+            },
+            {
+              type: "agent_text",
+              text: "Down to 3 CNMG inserts. I've drafted a PO to MSC for 50 — reply APPROVE to send it.",
+              showLabel: false,
+            },
+          ]);
+        }
+      }, 900);
+      return;
+    }
+
+    // PATH_C: Unsupported, unrelated, or nonsensical input -> exact existing guardrail message
+    if (decision.path === "PATH_C") {
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "agent_text",
+            text: decision.guardrailText || FRONTLINE_GUARDRAIL_MESSAGE,
+            showLabel: true,
+          },
+        ]);
+      }, 600);
+      return;
+    }
+
+    // PATH_B: Valid analytical / reasoning question over mock operational data via Vertex AI
+    try {
+      const res = await fetch("/api/frontline/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: raw,
+          personaId: currentPersona.id,
+          canApprovePo,
+        }),
+      });
+
+      const data = await res.json();
+      setIsTyping(false);
+
+      if (!res.ok || data.error) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "agent_text",
+            text: `⚠️ Operational summary unavailable: ${data.details || data.error || "Vertex AI service error"}`,
+            showLabel: true,
+          },
+        ]);
+        return;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "agent_text",
+          text: formatFrontlinePlainText(data.text),
+          showLabel: true,
+        },
+      ]);
+    } catch (err: any) {
+      setIsTyping(false);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "agent_text",
+          text: `⚠️ Network error communicating with Frontline intelligence: ${err?.message || "Failed to fetch"}`,
+          showLabel: true,
+        },
+      ]);
+    }
+  };
+
   // Send message in Chat mode
   const sendChatMessage = (rawText: string) => {
     const raw = rawText.trim();
     if (!raw || isTyping) return;
 
-    const userQuery = raw.toLowerCase();
     setChatInput("");
-
     setMessages((prev) => [...prev, { type: "user", text: raw }]);
-    setIsTyping(true);
-
-    setTimeout(() => {
-      setIsTyping(false);
-
-      if (userQuery.includes("approve")) {
-        setCanApprovePo(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "outcome_pill",
-            text: "✓ PO-1042 sent, arrives Thursday",
-          },
-        ]);
-      } else if (userQuery.includes("oil") || userQuery.includes("press")) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "agent_text",
-            text: "Here's the last change — straight from the floor record.",
-            showLabel: true,
-          },
-          {
-            type: "history_card",
-          },
-        ]);
-      } else if (
-        userQuery.includes("drift") ||
-        userQuery.includes("equipment") ||
-        userQuery.includes("temp") ||
-        userQuery.includes("down")
-      ) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "alert",
-            text: "Two things nobody has reported yet.",
-          },
-          {
-            type: "plan_turn",
-            checklist: [
-              "Flag the drift: Press 3 · Line 2",
-              "Create work order W-3318",
-              `Text ${currentPersona.assigneeName} the fix history`,
-              "Save the fix to knowledge",
-            ],
-            ackText: `${currentPersona.firstName} acknowledged, ETA 10 min`,
-            outcomeText: "✓ Fix saved to the knowledge base",
-          },
-        ]);
-      } else if (
-        userQuery.includes("priya") ||
-        userQuery.includes("training") ||
-        userQuery.includes("cert") ||
-        userQuery.includes("chemical")
-      ) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "training_card",
-          },
-          {
-            type: "alert",
-            text: "Station 4 needs the cert — nobody has scheduled it",
-          },
-          {
-            type: "agent_text",
-            text: "Ready for chemical handling? Six short steps with a quiz — I'll check each one as you go.",
-            showLabel: false,
-          },
-          {
-            type: "outcome_pill",
-            text: "✓ Module assigned, verified step by step",
-          },
-        ]);
-      } else if (
-        userQuery.includes("stock") ||
-        userQuery.includes("cnmg") ||
-        userQuery.includes("insert") ||
-        userQuery.includes("inventory") ||
-        userQuery.includes("order")
-      ) {
-        setCanApprovePo(true);
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "live_count_card",
-            showApproveBtn: true,
-          },
-          {
-            type: "alert",
-            text: "Below the reorder point — nobody has ordered",
-          },
-          {
-            type: "agent_text",
-            text: "Down to 3 CNMG inserts. I've drafted a PO to MSC for 50 — reply APPROVE to send it.",
-            showLabel: false,
-          },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "agent_text",
-            text: 'I can pull the floor\'s history ("when was the press oil last changed?"), flag drifting equipment, check training certs, or watch stock levels. Try one of the suggestions below.',
-            showLabel: true,
-          },
-        ]);
-      }
-    }, 900);
+    executeRoute(raw);
   };
 
   // Launch Chat mode from Home composer or chips
   const handleLaunchFromHome = (query: string) => {
     const text = query.trim();
-    if (!text) return;
+    if (!text || isTyping) return;
 
     setHomeInput("");
     setView("chat");
-
     setMessages([{ type: "user", text }]);
-    setIsTyping(true);
-
-    const userQuery = text.toLowerCase();
-
-    setTimeout(() => {
-      setIsTyping(false);
-
-      if (userQuery.includes("oil") || userQuery.includes("press")) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "agent_text",
-            text: "Here's the last change — straight from the floor record.",
-            showLabel: true,
-          },
-          {
-            type: "history_card",
-          },
-        ]);
-      } else if (
-        userQuery.includes("drift") ||
-        userQuery.includes("equipment") ||
-        userQuery.includes("temp") ||
-        userQuery.includes("down")
-      ) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "alert",
-            text: "Two things nobody has reported yet.",
-          },
-          {
-            type: "plan_turn",
-            checklist: [
-              "Flag the drift: Press 3 · Line 2",
-              "Create work order W-3318",
-              `Text ${currentPersona.assigneeName} the fix history`,
-              "Save the fix to knowledge",
-            ],
-            ackText: `${currentPersona.firstName} acknowledged, ETA 10 min`,
-            outcomeText: "✓ Fix saved to the knowledge base",
-          },
-        ]);
-      } else if (
-        userQuery.includes("priya") ||
-        userQuery.includes("training") ||
-        userQuery.includes("cert") ||
-        userQuery.includes("chemical")
-      ) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "training_card",
-          },
-          {
-            type: "alert",
-            text: "Station 4 needs the cert — nobody has scheduled it",
-          },
-          {
-            type: "agent_text",
-            text: "Ready for chemical handling? Six short steps with a quiz — I'll check each one as you go.",
-            showLabel: false,
-          },
-          {
-            type: "outcome_pill",
-            text: "✓ Module assigned, verified step by step",
-          },
-        ]);
-      } else if (
-        userQuery.includes("stock") ||
-        userQuery.includes("cnmg") ||
-        userQuery.includes("insert") ||
-        userQuery.includes("inventory") ||
-        userQuery.includes("order")
-      ) {
-        setCanApprovePo(true);
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "live_count_card",
-            showApproveBtn: true,
-          },
-          {
-            type: "alert",
-            text: "Below the reorder point — nobody has ordered",
-          },
-          {
-            type: "agent_text",
-            text: "Down to 3 CNMG inserts. I've drafted a PO to MSC for 50 — reply APPROVE to send it.",
-            showLabel: false,
-          },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "agent_text",
-            text: 'I can pull the floor\'s history ("when was the press oil last changed?"), flag drifting equipment, check training certs, or watch stock levels. Try one of the suggestions below.',
-            showLabel: true,
-          },
-        ]);
-      }
-    }, 900);
+    executeRoute(text);
   };
 
   // Launch Chat mode from Ticket cards
@@ -1595,7 +1380,7 @@ export default function FrontlinePage() {
                           <span>FRONTLINE</span>
                         </div>
                       )}
-                      <div className="max-w-[90%] sm:max-w-[80%] bg-[#FFFBF0] border-[1.5px] border-[#101418] text-[#101418] px-4 py-2.5 rounded-[16px] rounded-bl-[4px] font-sans text-[14px] leading-relaxed shadow-hard-xs select-text">
+                      <div className="max-w-[90%] sm:max-w-[80%] bg-[#FFFBF0] border-[1.5px] border-[#101418] text-[#101418] px-4 py-2.5 rounded-[16px] rounded-bl-[4px] font-sans text-[14px] leading-relaxed shadow-hard-xs select-text whitespace-pre-wrap">
                         {msg.text}
                       </div>
                     </div>
