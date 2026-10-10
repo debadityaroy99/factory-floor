@@ -492,7 +492,7 @@ export default function ManufacturingHero() {
                       color: activeStep.accentColor,
                     }}
                   >
-                    STEP {activeStep.stepNumber} // {activeStep.badge}
+                    STEP {activeStep.stepNumber} {"//"} {activeStep.badge}
                   </span>
                   <span className="text-xs text-slate-400 font-mono">{activeStep.role}</span>
                 </div>

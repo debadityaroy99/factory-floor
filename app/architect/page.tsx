@@ -10,8 +10,11 @@ export default function ArchitectPage() {
   const [selectedRunId, setSelectedRunId] = useState<string>("run-1");
   const [currentFile, setCurrentFile] = useState<string>("clevis.step");
 
-  const handleStartRun = (file: string) => {
+  const handleStartRun = (file: string, runId?: string) => {
     setCurrentFile(file);
+    if (runId) {
+      setSelectedRunId(runId);
+    }
     setViewState("running");
   };
 
@@ -38,7 +41,7 @@ export default function ArchitectPage() {
       {viewState === "upload" ? (
         <UploadState onStartRun={handleStartRun} />
       ) : (
-        <RunView fileName={currentFile} onCancel={handleCancelRun} />
+        <RunView runId={selectedRunId} fileName={currentFile} onCancel={handleCancelRun} />
       )}
     </AppShell>
   );

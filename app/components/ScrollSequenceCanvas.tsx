@@ -33,7 +33,11 @@ export function ScrollSequenceCanvas({
 
   // Debug or progress indicator
   const [, setLoadCount] = useState<number>(0);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false
+  );
 
   // Format frame URL: e.g. /frames/frame-001.jpg
   const getFrameUrl = (index: number) => {
@@ -125,7 +129,6 @@ export function ScrollSequenceCanvas({
   useEffect(() => {
     // Check prefers-reduced-motion
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
     const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handleMotionChange);
 

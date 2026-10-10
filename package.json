@@ -6,9 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@google-cloud/bigquery": "^8.3.1",
+    "@google-cloud/firestore": "^8.7.1",
+    "@google-cloud/storage": "^7.22.0",
+    "@google-cloud/vertexai": "^1.12.0",
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -21,6 +26,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

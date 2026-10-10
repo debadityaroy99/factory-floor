@@ -14,11 +14,12 @@ import { DrawingSheet } from "./DrawingSheet";
 import { AgentsFeed } from "./AgentsFeed";
 
 interface RunViewProps {
+  runId?: string;
   fileName?: string;
   onCancel: () => void;
 }
 
-export function RunView({ fileName = "clevis.step", onCancel }: RunViewProps) {
+export function RunView({ runId = "run-1", fileName = "clevis.step", onCancel }: RunViewProps) {
   // Current pipeline progression stage (1 to 8)
   const [pipelineStage, setPipelineStage] = useState<number>(1);
   // Selected stage for inspection (user can click past stages)
@@ -46,16 +47,30 @@ export function RunView({ fileName = "clevis.step", onCancel }: RunViewProps) {
         if (current >= 8) {
           setIsFinished(true);
           setInspectedStage(8);
+          // Persist stage 8 completion
+          fetch("/api/architect/pipeline", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ runId, stageId: 8 }),
+          }).catch(() => {});
           return 8;
         }
         const next = current + 1;
         setInspectedStage(next);
+        // Call Vertex AI pipeline API in the background
+        if ([3, 5, 7].includes(next)) {
+          fetch("/api/architect/pipeline", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ runId, stageId: next }),
+          }).catch(() => {});
+        }
         return next;
       });
     }, STAGE_DURATIONS[pipelineStage] || 2000);
 
     return () => clearTimeout(timer);
-  }, [pipelineStage, isFinished]);
+  }, [pipelineStage, isFinished, runId]);
 
   // Overall wall-clock ticker for live effect
   useEffect(() => {

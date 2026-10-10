@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MOCK_RUNS, RunHistoryItem } from "../mockData";
 
 interface SidebarProps {
@@ -10,6 +10,40 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarProps) {
+  const [runsList, setRunsList] = useState<RunHistoryItem[]>(MOCK_RUNS);
+
+  useEffect(() => {
+    fetch("/api/architect/runs")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data.runs) && data.runs.length > 0) {
+          // Merge dynamic runs with base runs avoiding duplicates
+          const seenIds = new Set<string>();
+          const merged: RunHistoryItem[] = [];
+
+          for (const r of data.runs) {
+            seenIds.add(r.id);
+            merged.push({
+              id: r.id,
+              name: r.name,
+              timestamp: r.timestamp,
+              stagesCompleted: r.stagesCompleted,
+              status: r.status,
+              isAssembly: r.isAssembly,
+            });
+          }
+
+          for (const r of MOCK_RUNS) {
+            if (!seenIds.has(r.id)) {
+              merged.push(r);
+            }
+          }
+
+          setRunsList(merged);
+        }
+      })
+      .catch(() => {});
+  }, [selectedRunId]);
   return (
     <aside className="w-[208px] bg-[#FBF6E9] border-r-[1.5px] border-[#101418] flex flex-col shrink-0 select-none overflow-hidden h-full">
       {/* Top Action Button */}
@@ -35,7 +69,7 @@ export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarPro
 
       {/* Runs List */}
       <div className="flex-1 overflow-y-auto px-2 space-y-1 text-left pt-1">
-        {MOCK_RUNS.map((run) => {
+        {runsList.map((run) => {
           const isSelected = run.id === selectedRunId;
           return (
             <button

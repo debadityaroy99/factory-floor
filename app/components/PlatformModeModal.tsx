@@ -67,35 +67,34 @@ export function PlatformModeModal({
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+
+    updatePositions();
+    window.addEventListener("resize", updatePositions);
+
+    // Re-measure once DOM renders the cards container
+    const measureTimer = setTimeout(() => {
       updatePositions();
-      window.addEventListener("resize", updatePositions);
+    }, 30);
 
-      // Re-measure once DOM renders the cards container
-      const measureTimer = setTimeout(() => {
-        updatePositions();
-      }, 30);
+    // 1. Immediately trigger the orange lines animation
+    const lineTimer = setTimeout(() => {
+      setAnimateLines(true);
+    }, 60);
 
-      // 1. Immediately trigger the orange lines animation
-      const lineTimer = setTimeout(() => {
-        setAnimateLines(true);
-      }, 60);
+    // 2. Once the lines swoop down from the top navbar (~420ms), pop the 2 mode cards
+    const cardsTimer = setTimeout(() => {
+      setShowCards(true);
+    }, 420);
 
-      // 2. Once the lines swoop down from the top navbar (~420ms), pop the 2 mode cards
-      const cardsTimer = setTimeout(() => {
-        setShowCards(true);
-      }, 420);
-
-      return () => {
-        window.removeEventListener("resize", updatePositions);
-        clearTimeout(measureTimer);
-        clearTimeout(lineTimer);
-        clearTimeout(cardsTimer);
-      };
-    } else {
+    return () => {
+      window.removeEventListener("resize", updatePositions);
+      clearTimeout(measureTimer);
+      clearTimeout(lineTimer);
+      clearTimeout(cardsTimer);
       setShowCards(false);
       setAnimateLines(false);
-    }
+    };
   }, [isOpen]);
 
   // Handle escape key
