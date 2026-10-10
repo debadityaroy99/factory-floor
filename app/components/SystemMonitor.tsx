@@ -198,7 +198,7 @@ export function SystemMonitor({ className = "" }: SystemMonitorProps) {
                   }`}
                 />
                 <span className="text-[#101418] font-semibold">Vertex AI</span>
-                <span className="text-[9px] text-[#101418]/60 font-mono">gemini-2.5-flash</span>
+                <span className="text-[9px] text-[#101418]/60 font-mono">gemini-3.8-flash</span>
               </div>
               <span className="text-[9.5px] font-bold text-[#101418]/80">
                 {healthData?.services.vertexAi.status === "healthy"
