@@ -36,7 +36,7 @@ export function getVertexClient(): VertexAI | null {
     try {
       vertexClientInstance = new VertexAI({
         project: config.projectId,
-        location: config.region,
+        location: config.vertexRegion,
       });
     } catch (err) {
       logWarn("Vertex AI client initialization failed", {
@@ -758,7 +758,7 @@ export async function checkVertexAiHealth(): Promise<{
     if (candidate) {
       return {
         status: "healthy",
-        details: `Connected to ${config.vertexModel} in ${config.region} on project ${config.projectId}`,
+        details: `Connected to ${config.vertexModel} in ${config.vertexRegion} on project ${config.projectId}`,
         latencyMs,
       };
     }

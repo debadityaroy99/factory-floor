@@ -6,6 +6,7 @@
 export interface AppConfig {
   projectId: string;
   region: string;
+  vertexRegion: string;
   vertexModel: string;
   storageBucket: string;
   firestoreDatabaseId: string;
@@ -25,6 +26,11 @@ export const config: AppConfig = {
     process.env.GOOGLE_CLOUD_REGION ||
     process.env.GCP_REGION ||
     "asia-south1",
+  vertexRegion:
+    process.env.VERTEX_AI_REGION ||
+    process.env.GOOGLE_CLOUD_REGION ||
+    process.env.GCP_REGION ||
+    "us-central1",
   vertexModel: process.env.VERTEX_AI_MODEL || "gemini-3.8-flash",
   storageBucket: process.env.GCS_BUCKET_NAME || "factory-floor-cad-drawings",
   firestoreDatabaseId: process.env.FIRESTORE_DATABASE_ID || "(default)",
