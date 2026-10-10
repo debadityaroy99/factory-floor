@@ -11,7 +11,7 @@ interface SidebarProps {
 
 export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarProps) {
   return (
-    <aside className="w-[208px] bg-[#FBF6E9] border-r-[1.5px] border-[#101418] flex flex-col shrink-0 select-none overflow-hidden h-full">
+    <aside className="w-[264px] bg-[#FBF6E9] border-r-[1.5px] border-[#101418] flex flex-col shrink-0 select-none overflow-hidden h-full">
       {/* Top Action Button */}
       <div className="p-3 pb-1">
         <button
