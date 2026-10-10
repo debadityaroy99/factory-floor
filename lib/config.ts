@@ -30,8 +30,8 @@ export const config: AppConfig = {
     process.env.VERTEX_AI_REGION ||
     process.env.GOOGLE_CLOUD_REGION ||
     process.env.GCP_REGION ||
-    "us-central1",
-  vertexModel: process.env.VERTEX_AI_MODEL || "gemini-3.8-flash",
+    "asia-south1",
+  vertexModel: process.env.VERTEX_AI_MODEL || "gemini-2.5-flash",
   storageBucket: process.env.GCS_BUCKET_NAME || "factory-floor-cad-drawings",
   firestoreDatabaseId: process.env.FIRESTORE_DATABASE_ID || "(default)",
   isProduction: process.env.NODE_ENV === "production",
