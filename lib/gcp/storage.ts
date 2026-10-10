@@ -319,7 +319,26 @@ export async function checkStorageHealth(): Promise<{
   const startTime = Date.now();
   try {
     const bucket = client.bucket(config.storageBucket);
-    const [exists] = await bucket.exists();
+    
+    // Attempt bucket metadata check
+    let exists = false;
+    try {
+      const [resExists] = await bucket.exists();
+      exists = resExists;
+    } catch (checkErr: any) {
+      // If storage.buckets.get is denied, test object list capability (roles/storage.objectAdmin provides object operations)
+      if (checkErr?.code === 403 || String(checkErr?.message).includes("storage.buckets.get")) {
+        try {
+          await bucket.getFiles({ maxResults: 1 });
+          exists = true;
+        } catch (listErr: any) {
+          throw checkErr;
+        }
+      } else {
+        throw checkErr;
+      }
+    }
+
     const latencyMs = Date.now() - startTime;
 
     if (exists) {

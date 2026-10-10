@@ -747,15 +747,16 @@ export async function checkVertexAiHealth(): Promise<{
   try {
     const generativeModel = client.getGenerativeModel({
       model: config.vertexModel,
-      generationConfig: { maxOutputTokens: 10 },
+      generationConfig: { maxOutputTokens: 32 },
     });
     const res = await generativeModel.generateContent({
-      contents: [{ role: "user", parts: [{ text: "ping" }] }],
+      contents: [{ role: "user", parts: [{ text: "Reply with PONG" }] }],
     });
-    const text = res.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const candidate = res.response?.candidates?.[0];
+    const text = candidate?.content?.parts?.[0]?.text;
     const latencyMs = Date.now() - startTime;
 
-    if (text) {
+    if (text || candidate) {
       return {
         status: "healthy",
         details: `Connected to ${config.vertexModel} in ${config.region} on project ${config.projectId}`,
