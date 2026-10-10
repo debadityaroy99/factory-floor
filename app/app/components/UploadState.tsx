@@ -4,15 +4,18 @@ import React, { useRef, useState } from "react";
 import { PIPELINE_STAGES } from "../mockData";
 
 interface UploadStateProps {
-  onStartRun: (filename: string) => void;
+  onStartRun: (runId: string, filename: string) => void;
 }
 
 export function UploadState({ onStartRun }: UploadStateProps) {
   const [attachedFile, setAttachedFile] = useState<{
     name: string;
     size: string;
+    file?: File;
   } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [runType, setRunType] = useState("Part — one drawing");
   const [stopAfter, setStopAfter] = useState("Run the whole pipeline");
   const [criticalReview, setCriticalReview] = useState(false);
@@ -20,15 +23,24 @@ export function UploadState({ onStartRun }: UploadStateProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSelectSample = () => {
+    // Generate a minimal sample STEP blob for live testing
+    const sampleBlob = new Blob([
+      "ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('Manufy Autodraft Sample Part'),'2;1');\nFILE_NAME('clevis.step','2026-10-10',('Mayank'),('Manufy'),'Core CAD','AutoDraft',#1);\nENDSEC;\nDATA;\n#10=MANIFOLD_SOLID_BREP('CLEVIS_BODY',#20);\nENDSEC;\nEND-ISO-10303-21;\n"
+    ], { type: "application/octet-stream" });
+    const sampleFile = new File([sampleBlob], "clevis.step", { type: "application/octet-stream" });
+
+    setUploadError(null);
     setAttachedFile({
       name: "clevis.step",
       size: "290 KB",
+      file: sampleFile,
     });
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     setAttachedFile(null);
+    setUploadError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -37,9 +49,11 @@ export function UploadState({ onStartRun }: UploadStateProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setUploadError(null);
       setAttachedFile({
         name: file.name,
         size: `${Math.round(file.size / 1024)} KB`,
+        file,
       });
     }
   };
@@ -49,12 +63,49 @@ export function UploadState({ onStartRun }: UploadStateProps) {
     setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
     if (file) {
+      setUploadError(null);
       setAttachedFile({
         name: file.name,
         size: `${Math.round(file.size / 1024)} KB`,
+        file,
       });
     } else {
       handleSelectSample();
+    }
+  };
+
+  const handleTriggerUpload = async () => {
+    if (!attachedFile) return;
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      if (attachedFile.file) {
+        formData.append("file", attachedFile.file);
+      } else {
+        const dummyBlob = new Blob(["SAMPLE CAD GEOMETRY"], { type: "application/octet-stream" });
+        formData.append("file", dummyBlob, attachedFile.name);
+      }
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      onStartRun(data.run.id, attachedFile.name);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload error";
+      setUploadError(msg);
+      // If error occurs, allow user to inspect or proceed with client mock run
+      console.error("[UploadState] Upload failed:", err);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -166,21 +217,49 @@ export function UploadState({ onStartRun }: UploadStateProps) {
 
                   <button
                     type="button"
+                    disabled={isUploading}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onStartRun(attachedFile.name);
+                      handleTriggerUpload();
                     }}
-                    className="btn-royal text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer font-semibold"
+                    className="btn-royal text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer font-semibold disabled:opacity-60"
                   >
-                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                    </svg>
-                    <span>Start run</span>
+                    {isUploading ? (
+                      <>
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        <span>Uploading to Cloud Storage...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                          <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                        </svg>
+                        <span>Start run</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
             )}
           </div>
+
+          {/* Upload error banner if any */}
+          {uploadError && (
+            <div className="mt-3 p-3 bg-[#FFF3C4] border border-[#FF6B2C] rounded-lg text-xs font-mono text-[#101418] flex items-start gap-2">
+              <span className="text-[#FF6B2C] font-bold">⚠</span>
+              <div className="flex-1">
+                <span className="font-semibold">Upload Notice: </span>
+                <span>{uploadError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => onStartRun(`client-run-${Date.now()}`, attachedFile?.name || "clevis.step")}
+                className="underline text-[#1E43D8] hover:text-[#3E6BE0] font-semibold text-[11px]"
+              >
+                Proceed with local simulation →
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Controls Row Under Dropzone */}

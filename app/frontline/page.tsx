@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { SystemMonitor } from "../components/SystemMonitor";
 
 // =========================================================================
 // TYPES & DATA
@@ -1166,10 +1167,7 @@ export default function FrontlinePage() {
             </button>
           )}
 
-          <div className="hidden sm:inline-flex items-center gap-1.5 bg-[#FFF3C4] border border-[#101418]/25 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider text-[#101418]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
-            <span>LIVE ON THE FLOOR</span>
-          </div>
+          <SystemMonitor />
 
           <Link
             href="/"

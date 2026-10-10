@@ -8,6 +8,7 @@ import { BomCheckModule } from "./components/BomCheckModule";
 import { Sidebar } from "../app/components/Sidebar";
 import { UploadState } from "../app/components/UploadState";
 import { RunView } from "../app/components/RunView";
+import { SystemMonitor } from "../components/SystemMonitor";
 
 export default function ArchitectPage() {
   // Active rail module: defaults to "01-autodraft"
@@ -22,7 +23,8 @@ export default function ArchitectPage() {
   const [bomCheckKey, setBomCheckKey] = useState<number>(0);
 
   // Handlers for Autodraft
-  const handleStartAutodraftRun = (file: string) => {
+  const handleStartAutodraftRun = (runId: string, file: string) => {
+    setSelectedRunId(runId);
     setCurrentFile(file);
     setAutodraftViewState("running");
   };
@@ -86,12 +88,9 @@ export default function ArchitectPage() {
           ARCHITECT MODE
         </div>
 
-        {/* Right side: Live Pill + All Modes Link */}
+        {/* Right side: Linux System Monitor + All Modes Link */}
         <div className="flex items-center gap-2.5 sm:gap-4">
-          <div className="hidden sm:inline-flex items-center gap-1.5 bg-[#FFF3C4] border border-[#101418]/25 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider text-[#101418]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
-            <span>LIVE</span>
-          </div>
+          <SystemMonitor />
 
           <Link
             href="/"
@@ -151,7 +150,7 @@ export default function ArchitectPage() {
                   {autodraftViewState === "upload" ? (
                     <UploadState onStartRun={handleStartAutodraftRun} />
                   ) : (
-                    <RunView fileName={currentFile} onCancel={handleCancelAutodraftRun} />
+                    <RunView runId={selectedRunId} fileName={currentFile} onCancel={handleCancelAutodraftRun} />
                   )}
                 </div>
               </div>

@@ -14,19 +14,53 @@ import { DrawingSheet } from "./DrawingSheet";
 import { AgentsFeed } from "./AgentsFeed";
 
 interface RunViewProps {
+  runId?: string;
   fileName?: string;
   onCancel: () => void;
 }
 
-export function RunView({ fileName = "clevis.step", onCancel }: RunViewProps) {
+export function RunView({ runId, fileName = "clevis.step", onCancel }: RunViewProps) {
   // Current pipeline progression stage (1 to 8)
   const [pipelineStage, setPipelineStage] = useState<number>(1);
   // Selected stage for inspection (user can click past stages)
   const [inspectedStage, setInspectedStage] = useState<number>(1);
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const [liveRunData, setLiveRunData] = useState<unknown | null>(null);
 
-  // Auto-play timeline simulation
+  // Trigger live backend pipeline execution when runId is provided
+  useEffect(() => {
+    if (!runId) return;
+
+    let isMounted = true;
+    async function executeLivePipeline() {
+      try {
+        const res = await fetch("/api/architect/pipeline", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ runId, targetStage: 8 }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.run && isMounted) {
+            setLiveRunData(data.run);
+            setPipelineStage(8);
+            setInspectedStage(8);
+            setIsFinished(true);
+          }
+        }
+      } catch (err) {
+        console.warn("[RunView] Pipeline API execution notice:", err);
+      }
+    }
+
+    executeLivePipeline();
+    return () => {
+      isMounted = false;
+    };
+  }, [runId]);
+
+  // Auto-play timeline simulation if running locally without backend completion
   useEffect(() => {
     if (isFinished) return;
 

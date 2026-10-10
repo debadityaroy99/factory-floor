@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MOCK_RUNS, RunHistoryItem } from "../mockData";
 
 interface SidebarProps {
@@ -10,6 +10,38 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarProps) {
+  const [runs, setRuns] = useState<RunHistoryItem[]>(MOCK_RUNS);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchRuns() {
+      try {
+        const res = await fetch("/api/architect/runs");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.runs && Array.isArray(data.runs) && data.runs.length > 0 && isMounted) {
+            const mapped: RunHistoryItem[] = data.runs.map((r: { id: string; name: string; timestamp: string; stagesCompleted: string; status: string; isAssembly?: boolean }) => ({
+              id: r.id,
+              name: r.name,
+              timestamp: r.timestamp,
+              stagesCompleted: r.stagesCompleted,
+              status: (r.status as RunHistoryItem["status"]) || "success",
+              isAssembly: r.isAssembly,
+            }));
+            setRuns(mapped);
+          }
+        }
+      } catch {
+        // Fall back to MOCK_RUNS gracefully
+      }
+    }
+    fetchRuns();
+    const interval = setInterval(fetchRuns, 8000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
   return (
     <aside className="w-[264px] bg-[#FBF6E9] border-r-[1.5px] border-[#101418] flex flex-col shrink-0 select-none overflow-hidden h-full">
       {/* Top Action Button */}
@@ -35,7 +67,7 @@ export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarPro
 
       {/* Runs List */}
       <div className="flex-1 overflow-y-auto px-2 space-y-1 text-left pt-1">
-        {MOCK_RUNS.map((run) => {
+        {runs.map((run) => {
           const isSelected = run.id === selectedRunId;
           return (
             <button

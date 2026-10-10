@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Sidebar } from "./Sidebar";
+import { SystemMonitor } from "../../components/SystemMonitor";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -50,11 +51,13 @@ export function AppShell({
           </span>
         </div>
 
-        <div className="flex items-center gap-4 sm:gap-6">
+        <div className="flex items-center gap-3 sm:gap-5">
           {/* Sparse decor: Tiny mono coordinate readout */}
           <span className="hidden sm:inline-block font-mono text-[11px] tracking-widest text-[#101418]/60 select-none">
             X 127.05 · Y 264.89
           </span>
+
+          <SystemMonitor />
 
           {/* Right side: Hand-drawn Caveat annotation link */}
           <Link
