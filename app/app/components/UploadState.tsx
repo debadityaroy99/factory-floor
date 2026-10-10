@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { PIPELINE_STAGES } from "../mockData";
 
 interface UploadStateProps {
-  onStartRun: (filename: string, runId?: string) => void;
+  onStartRun: (filename: string) => void;
 }
 
 export function UploadState({ onStartRun }: UploadStateProps) {
@@ -12,8 +12,6 @@ export function UploadState({ onStartRun }: UploadStateProps) {
     name: string;
     size: string;
   } | null>(null);
-  const [rawFile, setRawFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [runType, setRunType] = useState("Part — one drawing");
   const [stopAfter, setStopAfter] = useState("Run the whole pipeline");
@@ -22,7 +20,6 @@ export function UploadState({ onStartRun }: UploadStateProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSelectSample = () => {
-    setRawFile(null);
     setAttachedFile({
       name: "clevis.step",
       size: "290 KB",
@@ -32,7 +29,6 @@ export function UploadState({ onStartRun }: UploadStateProps) {
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     setAttachedFile(null);
-    setRawFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -41,7 +37,6 @@ export function UploadState({ onStartRun }: UploadStateProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setRawFile(file);
       setAttachedFile({
         name: file.name,
         size: `${Math.round(file.size / 1024)} KB`,
@@ -54,7 +49,6 @@ export function UploadState({ onStartRun }: UploadStateProps) {
     setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      setRawFile(file);
       setAttachedFile({
         name: file.name,
         size: `${Math.round(file.size / 1024)} KB`,
@@ -134,7 +128,7 @@ export function UploadState({ onStartRun }: UploadStateProps) {
                   }}
                   className="mt-3 font-mono text-[11px] text-[#1E43D8] hover:underline cursor-pointer"
                 >
-                  Or click to test with sample &quot;clevis.step&quot; (290 KB)
+                  Or click to test with sample "clevis.step" (290 KB)
                 </button>
 
                 {/* Disabled Start Run Button (Bottom-Right) */}
@@ -172,55 +166,16 @@ export function UploadState({ onStartRun }: UploadStateProps) {
 
                   <button
                     type="button"
-                    disabled={isUploading}
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.stopPropagation();
-                      if (!attachedFile || isUploading) return;
-                      setIsUploading(true);
-                      try {
-                        const formData = new FormData();
-                        if (rawFile) {
-                          formData.append("file", rawFile);
-                        } else {
-                          const dummyContent =
-                            "ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('Autodraft STEP model'),'2;1');\nFILE_NAME('clevis.step','2026-10-10',('Mayank'),('Manufy'),'','','');\nENDSEC;\nDATA;\nENDSEC;\nEND-ISO-10303-21;\n";
-                          const blob = new Blob([dummyContent], {
-                            type: "application/octet-stream",
-                          });
-                          formData.append("file", blob, attachedFile.name);
-                        }
-                        formData.append("runType", runType);
-                        const res = await fetch("/api/upload", {
-                          method: "POST",
-                          body: formData,
-                        });
-                        if (res.ok) {
-                          const data = await res.json();
-                          setIsUploading(false);
-                          onStartRun(attachedFile.name, data.runId);
-                          return;
-                        }
-                      } catch (err) {
-                        console.warn("Upload to Cloud Storage failed, continuing with run:", err);
-                      }
-                      setIsUploading(false);
                       onStartRun(attachedFile.name);
                     }}
-                    className="btn-royal text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer font-semibold disabled:opacity-50"
+                    className="btn-royal text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer font-semibold"
                   >
-                    {isUploading ? (
-                      <>
-                        <div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                        <span>Uploading to GCS…</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                          <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                        </svg>
-                        <span>Start run</span>
-                      </>
-                    )}
+                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                    </svg>
+                    <span>Start run</span>
                   </button>
                 </div>
               </div>

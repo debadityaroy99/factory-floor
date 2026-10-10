@@ -127,14 +127,11 @@ function FeatureSectionItem({
   const runwayRef = useRef<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false
-  );
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mediaQuery.matches);
 
     const handleMotionChange = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches);
@@ -256,7 +253,7 @@ function FeatureSectionItem({
         <div className="relative w-full z-30 flex items-center justify-between pt-3 px-4 sm:px-8 md:px-12 text-[10px] sm:text-xs font-mono text-[#5c6470] tracking-wider pointer-events-none">
           <div className="flex items-center gap-3 bg-[#f4ebd7]/90 px-2 py-0.5 rounded-[2px] backdrop-blur-[2px] border border-[#292929]/20">
             <span className="font-bold text-[#124ead]">{data.sheetNumber}</span>
-            <span className="hidden sm:inline-block text-[#292929]/40">{"//"}</span>
+            <span className="hidden sm:inline-block text-[#292929]/40">//</span>
             <span className="hidden sm:inline-block uppercase">{data.technicalLabel}</span>
           </div>
           <div className="flex items-center gap-2 bg-[#f4ebd7]/90 px-2 py-0.5 rounded-[2px] backdrop-blur-[2px] border border-[#292929]/20">
