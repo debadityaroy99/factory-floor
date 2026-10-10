@@ -3,11 +3,8 @@
 import React from "react";
 import {
   DraftingCompass,
-  ScanSearch,
   Shapes,
   Crosshair,
-  Layers,
-  BookOpenCheck,
   TableProperties,
   FolderKanban,
   ClipboardList,
@@ -32,43 +29,24 @@ export const ARCHITECT_MODULES: ModuleItem[] = [
     description: "Generates production 2D drawing sheets directly from 3D CAD models.",
   },
   {
-    id: "02-format-check",
+    id: "02-design-intelligence",
     number: "02",
-    label: "Format Check",
-    icon: ScanSearch,
-    description: "Checks title block, sheet format and revision table against your template.",
-  },
-  {
-    id: "03-design-intelligence",
-    number: "03",
     label: "Design Intelligence",
     icon: Shapes,
+    isLive: true,
     description: "Analyzes manufacturing feasibility, missing dimensions, and feature geometry.",
   },
   {
-    id: "04-gdt-review",
-    number: "04",
+    id: "03-gdt-review",
+    number: "03",
     label: "GD&T Review",
     icon: Crosshair,
+    isLive: true,
     description: "Validates datums, feature control frames, and ASME Y14.5 tolerance callouts.",
   },
   {
-    id: "05-assembly-review",
-    number: "05",
-    label: "Assembly Review",
-    icon: Layers,
-    description: "Verifies stack-ups, mating part clearances, and fastener engagement depths.",
-  },
-  {
-    id: "06-standards-check",
-    number: "06",
-    label: "Standards Check",
-    icon: BookOpenCheck,
-    description: "Confirms drawing compliance against ISO, DIN, and internal plant drafting rules.",
-  },
-  {
-    id: "07-bom-check",
-    number: "07",
+    id: "04-bom-check",
+    number: "04",
     label: "BOM Check",
     icon: TableProperties,
     isLive: true,
@@ -109,7 +87,7 @@ export function FeatureRail({ activeModuleId, onSelectModule }: FeatureRailProps
             ARCHITECT MODULES
           </div>
 
-          {/* Module Rows (01 - 07) */}
+          {/* Module Rows (01 - 04) */}
           <div className="space-y-1">
             {ARCHITECT_MODULES.map((mod) => {
               const isActive = activeModuleId === mod.id;

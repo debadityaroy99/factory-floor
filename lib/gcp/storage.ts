@@ -265,6 +265,157 @@ export async function uploadFileToStorage(params: {
 }
 
 /**
+ * Uploads a project file or manifest to Cloud Storage under:
+ * `projects/{projectId}/source/{fileName}`
+ */
+export async function uploadProjectFileToStorage(params: {
+  buffer: Buffer;
+  fileName: string;
+  contentType: string;
+  projectId: string;
+  subFolder?: string;
+}): Promise<StoredFileMetadata> {
+  const { buffer, fileName, contentType, projectId, subFolder = "source" } = params;
+
+  // Prevent path traversal and sanitize filename
+  const sanitizedFileName = path.basename(fileName).replace(/[^a-zA-Z0-9._-]/g, "_");
+  const prefix = `projects/${projectId}/${subFolder}/${sanitizedFileName}`;
+
+  const checksum = crypto.createHash("md5").update(buffer).digest("hex");
+  const uploadedAt = new Date().toISOString();
+
+  const client = getStorageClient();
+
+  if (client) {
+    try {
+      await ensureBucketExists(client);
+
+      const bucket = client.bucket(config.storageBucket);
+      const file = bucket.file(prefix);
+
+      await file.save(buffer, {
+        contentType,
+        metadata: {
+          cacheControl: "private, max-age=3600",
+          metadata: {
+            projectId,
+            category: subFolder === "runs" ? "project_run" : "project_source",
+            md5Checksum: checksum,
+          },
+        },
+        resumable: false,
+      });
+
+      const storageUri = `gs://${config.storageBucket}/${prefix}`;
+
+      logInfo(`Project file uploaded successfully to Cloud Storage`, {
+        service: "storage",
+        projectId,
+        storageUri,
+        fileSizeBytes: buffer.length,
+      });
+
+      return {
+        fileName: sanitizedFileName,
+        fileSizeBytes: buffer.length,
+        contentType,
+        storageUri,
+        checksum,
+        uploadedAt,
+        isMock: false,
+      };
+    } catch (gcpErr) {
+      logError(`Upload to Cloud Storage failed for project ${prefix}`, gcpErr, {
+        service: "storage",
+        projectId,
+        bucket: config.storageBucket,
+      });
+
+      if (!config.useMockServices) {
+        throw new Error(
+          `Failed to persist project file '${sanitizedFileName}' to Google Cloud Storage: ${
+            gcpErr instanceof Error ? gcpErr.message : String(gcpErr)
+          }`
+        );
+      }
+    }
+  }
+
+  // Local / Mock Dev Mode Fallback
+  logWarn(`Persisting project file to local dev storage (mock mode)`, {
+    service: "storage",
+    projectId,
+    fileName: sanitizedFileName,
+  });
+
+  const localDir = path.join(process.cwd(), "tmp_uploads", "projects", projectId, subFolder);
+  if (!fs.existsSync(localDir)) {
+    fs.mkdirSync(localDir, { recursive: true });
+  }
+  const localFilePath = path.join(localDir, sanitizedFileName);
+  fs.writeFileSync(localFilePath, buffer);
+
+  return {
+    fileName: sanitizedFileName,
+    fileSizeBytes: buffer.length,
+    contentType,
+    storageUri: `file://${localFilePath}`,
+    checksum,
+    uploadedAt,
+    isMock: true,
+  };
+}
+
+/**
+ * Deletes all project files in Cloud Storage under `projects/{projectId}/`.
+ */
+export async function deleteProjectFilesFromStorage(projectId: string): Promise<void> {
+  const client = getStorageClient();
+
+  if (client) {
+    try {
+      const bucket = client.bucket(config.storageBucket);
+      const prefix = `projects/${projectId}/`;
+
+      // Delete all files with this project prefix
+      await bucket.deleteFiles({
+        prefix,
+        force: true,
+      });
+
+      logInfo(`Successfully deleted Cloud Storage files for project '${projectId}'`, {
+        service: "storage",
+        projectId,
+      });
+    } catch (gcpErr) {
+      logError(`Failed to delete Cloud Storage files for project '${projectId}'`, gcpErr, {
+        service: "storage",
+        projectId,
+        bucket: config.storageBucket,
+      });
+
+      if (!config.useMockServices) {
+        throw new Error(
+          `Failed to delete files from Google Cloud Storage for project '${projectId}': ${
+            gcpErr instanceof Error ? gcpErr.message : String(gcpErr)
+          }`
+        );
+      }
+    }
+  }
+
+  // Clean up local mock directory if exists
+  const localDir = path.join(process.cwd(), "tmp_uploads", "projects", projectId);
+  if (fs.existsSync(localDir)) {
+    try {
+      fs.rmSync(localDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup error in mock mode
+    }
+  }
+}
+
+/**
  * Downloads a file buffer from Cloud Storage (or local filesystem in mock mode).
  */
 export async function downloadFileFromStorage(storageUri: string): Promise<Buffer> {

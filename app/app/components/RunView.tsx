@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PIPELINE_STAGES, PipelineStage } from "../mockData";
 import { Stepper } from "./Stepper";
 import { PartSummary } from "./PartSummary";
@@ -17,20 +17,56 @@ interface RunViewProps {
   runId?: string;
   fileName?: string;
   onCancel: () => void;
+  initialStage?: number;
+  isInspect?: boolean;
+  onRunComplete?: (info: {
+    runId?: string;
+    fileName: string;
+    moduleName: "AUTODRAFT";
+    moduleCode: "01-autodraft";
+    runTitle: string;
+    result: string;
+    resultType: "error" | "warn" | "clear" | "neutral";
+    details?: Record<string, unknown>;
+  }) => void;
 }
 
-export function RunView({ runId, fileName = "clevis.step", onCancel }: RunViewProps) {
-  // Current pipeline progression stage (1 to 8)
-  const [pipelineStage, setPipelineStage] = useState<number>(1);
-  // Selected stage for inspection (user can click past stages)
-  const [inspectedStage, setInspectedStage] = useState<number>(1);
-  const [isFinished, setIsFinished] = useState<boolean>(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+export function RunView({
+  runId,
+  fileName = "clevis.step",
+  onCancel,
+  initialStage = 1,
+  isInspect = false,
+  onRunComplete,
+}: RunViewProps) {
+  // Current pipeline progression stage (1 to 8) - directly 8 when inspecting
+  const [pipelineStage, setPipelineStage] = useState<number>(isInspect ? 8 : (initialStage || 1));
+  // Selected stage for inspection
+  const [inspectedStage, setInspectedStage] = useState<number>(isInspect ? 8 : (initialStage || 1));
+  const [isFinished, setIsFinished] = useState<boolean>(isInspect || (initialStage ? initialStage >= 8 : false));
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(isInspect ? 14 : 0);
   const [liveRunData, setLiveRunData] = useState<unknown | null>(null);
+  const hasNotifiedComplete = useRef(isInspect);
 
-  // Trigger live backend pipeline execution when runId is provided
   useEffect(() => {
-    if (!runId) return;
+    if (isFinished && !hasNotifiedComplete.current && !isInspect) {
+      hasNotifiedComplete.current = true;
+      onRunComplete?.({
+        runId,
+        fileName,
+        moduleName: "AUTODRAFT",
+        moduleCode: "01-autodraft",
+        runTitle: `STEP to drawing · ${fileName}`,
+        result: "DRAWING GENERATED",
+        resultType: "clear",
+        details: (liveRunData as Record<string, unknown>) || {},
+      });
+    }
+  }, [isFinished, runId, fileName, liveRunData, isInspect, onRunComplete]);
+
+  // Trigger live backend pipeline execution when runId is provided (skip if inspecting)
+  useEffect(() => {
+    if (!runId || isInspect) return;
 
     let isMounted = true;
     async function executeLivePipeline() {
@@ -62,7 +98,7 @@ export function RunView({ runId, fileName = "clevis.step", onCancel }: RunViewPr
 
   // Auto-play timeline simulation if running locally without backend completion
   useEffect(() => {
-    if (isFinished) return;
+    if (isFinished || isInspect) return;
 
     const STAGE_DURATIONS: { [key: number]: number } = {
       1: 1400, // Load STEP
@@ -89,16 +125,16 @@ export function RunView({ runId, fileName = "clevis.step", onCancel }: RunViewPr
     }, STAGE_DURATIONS[pipelineStage] || 2000);
 
     return () => clearTimeout(timer);
-  }, [pipelineStage, isFinished]);
+  }, [pipelineStage, isFinished, isInspect]);
 
   // Overall wall-clock ticker for live effect
   useEffect(() => {
-    if (isFinished) return;
+    if (isFinished || isInspect) return;
     const ticker = setInterval(() => {
       setElapsedSeconds((s) => s + 1);
     }, 1000);
     return () => clearInterval(ticker);
-  }, [isFinished]);
+  }, [isFinished, isInspect]);
 
   const formatTimer = (sec: number) => {
     const m = Math.floor(sec / 60);

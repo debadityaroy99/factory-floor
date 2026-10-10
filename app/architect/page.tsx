@@ -5,6 +5,9 @@ import Link from "next/link";
 import { FeatureRail, ARCHITECT_MODULES, WORKSPACE_ITEMS, ModuleItem } from "./components/FeatureRail";
 import { PlaceholderModule } from "./components/PlaceholderModule";
 import { BomCheckModule } from "./components/BomCheckModule";
+import { DesignIntelligenceModule } from "./components/DesignIntelligenceModule";
+import { GdtReviewModule } from "./components/GdtReviewModule";
+import { ProjectsView, ProjectModuleNavOptions } from "./components/ProjectsView";
 import { Sidebar } from "../app/components/Sidebar";
 import { UploadState } from "../app/components/UploadState";
 import { RunView } from "../app/components/RunView";
@@ -16,11 +19,39 @@ export default function ArchitectPage() {
 
   // Autodraft nested states
   const [autodraftViewState, setAutodraftViewState] = useState<"upload" | "running">("upload");
-  const [selectedRunId, setSelectedRunId] = useState<string>("run-1");
+  const [selectedRunId, setSelectedRunId] = useState<string>("");
   const [currentFile, setCurrentFile] = useState<string>("clevis.step");
 
-  // BOM Check reset key for "+ New run"
+  // Active project context when jumping from Projects workspace
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [activeProjectName, setActiveProjectName] = useState<string | null>(null);
+
+  // Autodraft inspect state
+  const [autodraftIsInspect, setAutodraftIsInspect] = useState<boolean>(false);
+
+  // Module reset keys for "+ New run"
   const [bomCheckKey, setBomCheckKey] = useState<number>(0);
+  const [designIntelKey, setDesignIntelKey] = useState<number>(0);
+  const [gdtReviewKey, setGdtReviewKey] = useState<number>(0);
+
+  // Navigation configs when jumping from Projects workspace
+  const [designIntelConfig, setDesignIntelConfig] = useState<{
+    initialSample?: boolean;
+    initialStep?: 1 | 2 | 3;
+    isInspect?: boolean;
+  } | null>(null);
+
+  const [gdtReviewConfig, setGdtReviewConfig] = useState<{
+    initialSample?: boolean;
+    initialStep?: 1 | 2 | 3;
+    isInspect?: boolean;
+  } | null>(null);
+
+  const [bomCheckConfig, setBomCheckConfig] = useState<{
+    initialSample?: boolean;
+    initialStep?: 1 | 2 | 3;
+    isInspect?: boolean;
+  } | null>(null);
 
   // Handlers for Autodraft
   const handleStartAutodraftRun = (runId: string, file: string) => {
@@ -30,29 +61,115 @@ export default function ArchitectPage() {
   };
 
   const handleCancelAutodraftRun = () => {
+    setAutodraftIsInspect(false);
     setAutodraftViewState("upload");
   };
 
   const handleNewDrawing = () => {
+    setAutodraftIsInspect(false);
     setAutodraftViewState("upload");
   };
 
   const handleSelectRun = (runId: string) => {
+    setAutodraftIsInspect(false);
     setSelectedRunId(runId);
     setAutodraftViewState("running");
   };
 
+  // Handler when any module finishes a run
+  const handleRunComplete = async (runInfo: {
+    moduleName: "AUTODRAFT" | "DESIGN INTELLIGENCE" | "GD&T REVIEW" | "BOM CHECK";
+    moduleCode: "01-autodraft" | "02-design-intelligence" | "03-gdt-review" | "04-bom-check";
+    runTitle: string;
+    fileName: string;
+    result: string;
+    resultType: "error" | "warn" | "clear" | "neutral";
+    runId?: string;
+    sampleStep?: 1 | 2 | 3;
+    details?: Record<string, unknown>;
+  }) => {
+    if (!activeProjectId) return;
+
+    try {
+      const res = await fetch("/api/architect/projects/runs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: activeProjectId,
+          ...runInfo,
+        }),
+      });
+      if (res.ok) {
+        console.log(`[Architect] Run successfully persisted to project '${activeProjectId}'`);
+      }
+    } catch (err) {
+      console.error("[Architect] Failed to persist run to project:", err);
+    }
+  };
+
+  // Resolve valid active module with fallback to "01-autodraft"
+  const validModuleIds = [...ARCHITECT_MODULES, ...WORKSPACE_ITEMS].map((m) => m.id);
+  const effectiveModuleId = validModuleIds.includes(activeModuleId) ? activeModuleId : "01-autodraft";
+
   // Find active module metadata
   const currentModule: ModuleItem =
-    ARCHITECT_MODULES.find((m) => m.id === activeModuleId) ||
-    WORKSPACE_ITEMS.find((w) => w.id === activeModuleId) ||
+    ARCHITECT_MODULES.find((m) => m.id === effectiveModuleId) ||
+    WORKSPACE_ITEMS.find((w) => w.id === effectiveModuleId) ||
     ARCHITECT_MODULES[0];
 
   // Handler for top-right "+ New run" button
   const handleNewRun = () => {
-    if (activeModuleId === "01-autodraft") {
+    setAutodraftIsInspect(false);
+    if (effectiveModuleId === "01-autodraft") {
       handleNewDrawing();
-    } else if (activeModuleId === "07-bom-check") {
+    } else if (effectiveModuleId === "02-design-intelligence") {
+      setDesignIntelConfig({ initialStep: 1, isInspect: false });
+      setDesignIntelKey((prev) => prev + 1);
+    } else if (effectiveModuleId === "03-gdt-review") {
+      setGdtReviewConfig({ initialStep: 1, isInspect: false });
+      setGdtReviewKey((prev) => prev + 1);
+    } else if (effectiveModuleId === "04-bom-check") {
+      setBomCheckConfig({ initialStep: 1, isInspect: false });
+      setBomCheckKey((prev) => prev + 1);
+    }
+  };
+
+  // Handler when navigating from Projects gallery / detail run / sample cards
+  const handleOpenModuleFromProjects = (moduleCode: string, options?: ProjectModuleNavOptions) => {
+    setActiveModuleId(moduleCode);
+    if (options?.projectId) {
+      setActiveProjectId(options.projectId);
+      setActiveProjectName(options.projectName || "Project");
+    }
+    const isInspectMode = !!options?.isInspect;
+
+    if (moduleCode === "01-autodraft") {
+      setAutodraftIsInspect(isInspectMode);
+      if (options?.initialSample || isInspectMode) {
+        handleStartAutodraftRun(options?.runId || "sample-clevis", options?.fileName || "clevis.step");
+      } else {
+        handleNewDrawing();
+      }
+    } else if (moduleCode === "02-design-intelligence") {
+      setDesignIntelConfig({
+        initialSample: options?.initialSample,
+        initialStep: isInspectMode ? 3 : (options?.initialStep || (options?.initialSample ? 3 : 1)),
+        isInspect: isInspectMode,
+      });
+      setDesignIntelKey((prev) => prev + 1);
+    } else if (moduleCode === "03-gdt-review") {
+      setGdtReviewConfig({
+        initialSample: options?.initialSample,
+        initialStep: isInspectMode ? 3 : (options?.initialStep || (options?.initialSample ? 3 : 1)),
+        isInspect: isInspectMode,
+      });
+      setGdtReviewKey((prev) => prev + 1);
+    } else if (moduleCode === "04-bom-check") {
+      setBomCheckConfig({
+        initialSample: options?.initialSample,
+        initialStep: isInspectMode ? 3 : (options?.initialStep ?? (options?.initialSample ? 3 : 1)),
+        isInspect: isInspectMode,
+      });
       setBomCheckKey((prev) => prev + 1);
     }
   };
@@ -107,38 +224,56 @@ export default function ArchitectPage() {
       <div className="flex-1 flex flex-col min-[900px]:flex-row overflow-hidden relative">
         {/* Left Feature Rail */}
         <FeatureRail
-          activeModuleId={activeModuleId}
+          activeModuleId={effectiveModuleId}
           onSelectModule={(id) => setActiveModuleId(id)}
         />
 
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col overflow-hidden bg-[#FFFBF0] relative">
-          {/* Content Header Bar above every module */}
-          <div className="h-10 border-b border-[#101418]/20 bg-[#FBF6E9] px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
-            {/* Left: Mono breadcrumb */}
-            <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-[#101418]/70 uppercase tracking-wider">
-              <span>HOME</span>
-              <span className="text-[#101418]/30">/</span>
-              <span className="text-[#101418] font-bold">
-                {currentModule.label}
-              </span>
-            </div>
+          {/* Content Header Bar above modules (hidden for Projects which has its own integrated header) */}
+          {effectiveModuleId !== "ws-projects" && (
+            <div className="h-10 border-b border-[#101418]/20 bg-[#FBF6E9] px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
+              {/* Left: Mono breadcrumb */}
+              <div className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-[#101418]/70 uppercase tracking-wider">
+                {activeProjectId && activeProjectName ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setActiveModuleId("ws-projects")}
+                      className="text-[#1E43D8] hover:underline flex items-center gap-1 font-bold cursor-pointer"
+                      title="Return to project"
+                    >
+                      <span>← {activeProjectName}</span>
+                    </button>
+                    <span className="text-[#101418]/30">/</span>
+                  </>
+                ) : (
+                  <>
+                    <span>HOME</span>
+                    <span className="text-[#101418]/30">/</span>
+                  </>
+                )}
+                <span className="text-[#101418] font-bold">
+                  {currentModule.label}
+                </span>
+              </div>
 
-            {/* Right: Black "+ New run" pill for live modules */}
-            {currentModule.isLive && (
-              <button
-                type="button"
-                onClick={handleNewRun}
-                className="bg-[#101418] hover:bg-[#101418]/85 text-white font-mono text-[11px] font-semibold px-3 py-1 rounded-full shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
-              >
-                <span>+ New run</span>
-              </button>
-            )}
-          </div>
+              {/* Right: Black "+ New run" pill for live modules */}
+              {currentModule.isLive && (
+                <button
+                  type="button"
+                  onClick={handleNewRun}
+                  className="bg-[#101418] hover:bg-[#101418]/85 text-white font-mono text-[11px] font-semibold px-3 py-1 rounded-full shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <span>+ New run</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Module Stage Swapping */}
           <div className="flex-1 flex overflow-hidden relative">
-            {activeModuleId === "01-autodraft" ? (
+            {effectiveModuleId === "01-autodraft" ? (
               /* MODULE 01: AUTODRAFT (Runs sidebar 264px + UploadState / RunView workspace) */
               <div className="flex-1 flex overflow-hidden relative w-full h-full">
                 <Sidebar
@@ -150,15 +285,55 @@ export default function ArchitectPage() {
                   {autodraftViewState === "upload" ? (
                     <UploadState onStartRun={handleStartAutodraftRun} />
                   ) : (
-                    <RunView runId={selectedRunId} fileName={currentFile} onCancel={handleCancelAutodraftRun} />
+                    <RunView
+                      runId={selectedRunId}
+                      fileName={currentFile}
+                      onCancel={handleCancelAutodraftRun}
+                      onRunComplete={handleRunComplete}
+                      isInspect={autodraftIsInspect}
+                    />
                   )}
                 </div>
               </div>
-            ) : activeModuleId === "07-bom-check" ? (
-              /* MODULE 07: BOM CHECK */
-              <BomCheckModule key={bomCheckKey} onNewRun={handleNewRun} />
+            ) : effectiveModuleId === "02-design-intelligence" ? (
+              /* MODULE 02: DESIGN INTELLIGENCE */
+              <DesignIntelligenceModule
+                key={designIntelKey}
+                initialSample={designIntelConfig?.initialSample}
+                initialStep={designIntelConfig?.initialStep}
+                isInspect={designIntelConfig?.isInspect}
+                onNewRun={handleNewRun}
+                onRunComplete={handleRunComplete}
+              />
+            ) : effectiveModuleId === "03-gdt-review" ? (
+              /* MODULE 03: GD&T REVIEW */
+              <GdtReviewModule
+                key={gdtReviewKey}
+                initialSample={gdtReviewConfig?.initialSample}
+                initialStep={gdtReviewConfig?.initialStep}
+                isInspect={gdtReviewConfig?.isInspect}
+                onNewRun={handleNewRun}
+                onRunComplete={handleRunComplete}
+              />
+            ) : effectiveModuleId === "04-bom-check" ? (
+              /* MODULE 04: BOM CHECK */
+              <BomCheckModule
+                key={bomCheckKey}
+                initialSample={bomCheckConfig?.initialSample}
+                initialStep={bomCheckConfig?.initialStep}
+                isInspect={bomCheckConfig?.isInspect}
+                onNewRun={handleNewRun}
+                onRunComplete={handleRunComplete}
+              />
+            ) : effectiveModuleId === "ws-projects" ? (
+              /* WORKSPACE: PROJECTS VIEW */
+              <ProjectsView
+                initialProjectId={activeProjectId}
+                onOpenModule={handleOpenModuleFromProjects}
+                onBackToModules={() => setActiveModuleId("01-autodraft")}
+              />
             ) : (
-              /* MODULES 02-06 & WORKSPACE: IN PREPARATION PLACEHOLDER */
+              /* WORKSPACE: IN PREPARATION PLACEHOLDER (e.g. My Reviews) */
               <PlaceholderModule module={currentModule} />
             )}
           </div>

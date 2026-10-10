@@ -205,21 +205,73 @@ const PARTS_LIST_ROWS = [
 
 interface BomCheckModuleProps {
   onNewRun?: () => void;
+  initialStep?: 1 | 2 | 3;
+  initialSample?: boolean;
+  isInspect?: boolean;
+  onRunComplete?: (info: {
+    runId?: string;
+    fileName: string;
+    moduleName: "BOM CHECK";
+    moduleCode: "04-bom-check";
+    runTitle: string;
+    result: string;
+    resultType: "error" | "warn" | "clear" | "neutral";
+    sampleStep?: 1 | 2 | 3;
+    details?: Record<string, unknown>;
+  }) => void;
 }
 
-export function BomCheckModule({ onNewRun }: BomCheckModuleProps) {
-  // Mode step: 1 = New Check, 2 = Running, 3 = Results
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+export function BomCheckModule({
+  onNewRun,
+  initialStep,
+  initialSample = false,
+  isInspect = false,
+  onRunComplete,
+}: BomCheckModuleProps) {
+  // Mode step: 1 = New Check, 2 = Running, 3 = Results (opens directly to 3 if inspecting)
+  const [step, setStep] = useState<1 | 2 | 3>(
+    isInspect ? 3 : (initialStep || (initialSample ? 3 : 1))
+  );
 
   // Files
   const [drawingFile, setDrawingFile] = useState<{
     name: string;
     size: string;
-  } | null>(null);
+  } | null>(
+    initialSample || isInspect
+      ? { name: "E1100217-sh1.pdf", size: "2.4 MB" }
+      : null
+  );
   const [bomFile, setBomFile] = useState<{
     name: string;
     size: string;
-  } | null>(null);
+  } | null>(
+    initialSample || isInspect
+      ? { name: "E1100217-BOM-v1.xlsx", size: "184 KB" }
+      : null
+  );
+
+  const hasNotifiedComplete = useRef(isInspect);
+
+  useEffect(() => {
+    if (step === 3 && !hasNotifiedComplete.current && !isInspect) {
+      hasNotifiedComplete.current = true;
+      onRunComplete?.({
+        fileName: drawingFile?.name || "E1100217-sh1.pdf",
+        moduleName: "BOM CHECK",
+        moduleCode: "04-bom-check",
+        runTitle: "BOM vs drawing, reconciled",
+        result: "3 MAJOR DISCREPANCIES",
+        resultType: "error",
+        sampleStep: 3,
+        details: {
+          drawingFile: drawingFile?.name,
+          bomFile: bomFile?.name,
+          findingsCount: 3,
+        },
+      });
+    }
+  }, [step, drawingFile, bomFile, isInspect, onRunComplete]);
 
   // State 1 staggered ticks
   const [stage1Ticks, setStage1Ticks] = useState(0);

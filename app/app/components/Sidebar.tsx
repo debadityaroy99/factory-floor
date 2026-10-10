@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { MOCK_RUNS, RunHistoryItem } from "../mockData";
+import { RunHistoryItem } from "../mockData";
 
 interface SidebarProps {
   onNewDrawing: () => void;
@@ -10,7 +10,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarProps) {
-  const [runs, setRuns] = useState<RunHistoryItem[]>(MOCK_RUNS);
+  const [runs, setRuns] = useState<RunHistoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -19,7 +20,7 @@ export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarPro
         const res = await fetch("/api/architect/runs");
         if (res.ok) {
           const data = await res.json();
-          if (data.runs && Array.isArray(data.runs) && data.runs.length > 0 && isMounted) {
+          if (data.runs && Array.isArray(data.runs) && isMounted) {
             const mapped: RunHistoryItem[] = data.runs.map((r: { id: string; name: string; timestamp: string; stagesCompleted: string; status: string; isAssembly?: boolean }) => ({
               id: r.id,
               name: r.name,
@@ -31,8 +32,12 @@ export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarPro
             setRuns(mapped);
           }
         }
-      } catch {
-        // Fall back to MOCK_RUNS gracefully
+      } catch (err) {
+        console.warn("[Sidebar] Failed to fetch runs:", err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     fetchRuns();
@@ -67,46 +72,63 @@ export function Sidebar({ onNewDrawing, selectedRunId, onSelectRun }: SidebarPro
 
       {/* Runs List */}
       <div className="flex-1 overflow-y-auto px-2 space-y-1 text-left pt-1">
-        {runs.map((run) => {
-          const isSelected = run.id === selectedRunId;
-          return (
-            <button
-              key={run.id}
-              onClick={() => onSelectRun(run.id)}
-              className={`w-full p-2 rounded-lg text-left transition-all cursor-pointer flex items-start gap-2 ${
-                isSelected
-                  ? "bg-[#E8EEFC] text-[#101418] font-medium border-[1.5px] border-[#101418] shadow-hard-xs"
-                  : "text-[#101418]/80 hover:bg-[#F0E9D8] border border-transparent"
-              }`}
-            >
-              {/* Status Icon */}
-              <div className="mt-0.5 shrink-0">
-                {run.status === "warning" ? (
-                  <svg className="w-3.5 h-3.5 text-[#FF6B2C]" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                ) : run.status === "running" ? (
-                  <div className="w-3.5 h-3.5 rounded-full border-[2px] border-[#1E43D8] border-t-transparent animate-spin" />
-                ) : (
-                  /* Completed = royal-blue circle-check */
-                  <svg className="w-3.5 h-3.5 text-[#1E43D8]" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                )}
-              </div>
+        {isLoading ? (
+          <div className="p-2 space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="w-full h-11 rounded-lg bg-[#101418]/[0.06] animate-pulse" />
+            ))}
+          </div>
+        ) : runs.length === 0 ? (
+          <div className="px-3 py-6 text-center">
+            <div className="font-mono text-[11px] font-semibold text-[#101418]/50 uppercase tracking-wider">
+              No runs recorded
+            </div>
+            <div className="font-sans text-[11px] text-[#101418]/40 mt-1">
+              Upload a drawing to start a new run
+            </div>
+          </div>
+        ) : (
+          runs.map((run) => {
+            const isSelected = run.id === selectedRunId;
+            return (
+              <button
+                key={run.id}
+                onClick={() => onSelectRun(run.id)}
+                className={`w-full p-2 rounded-lg text-left transition-all cursor-pointer flex items-start gap-2 ${
+                  isSelected
+                    ? "bg-[#E8EEFC] text-[#101418] font-medium border-[1.5px] border-[#101418] shadow-hard-xs"
+                    : "text-[#101418]/80 hover:bg-[#F0E9D8] border border-transparent"
+                }`}
+              >
+                {/* Status Icon */}
+                <div className="mt-0.5 shrink-0">
+                  {run.status === "warning" ? (
+                    <svg className="w-3.5 h-3.5 text-[#FF6B2C]" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  ) : run.status === "running" ? (
+                    <div className="w-3.5 h-3.5 rounded-full border-[2px] border-[#1E43D8] border-t-transparent animate-spin" />
+                  ) : (
+                    /* Completed = royal-blue circle-check */
+                    <svg className="w-3.5 h-3.5 text-[#1E43D8]" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
 
-              {/* Title & Timestamp */}
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-medium leading-tight truncate text-[#101418]">
-                  {run.name}
+                {/* Title & Timestamp */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-medium leading-tight truncate text-[#101418]">
+                    {run.name}
+                  </div>
+                  <div className="font-mono text-[10px] text-[#101418]/50 leading-normal truncate mt-0.5">
+                    {run.timestamp} · {run.stagesCompleted}
+                  </div>
                 </div>
-                <div className="font-mono text-[10px] text-[#101418]/50 leading-normal truncate mt-0.5">
-                  {run.timestamp} · {run.stagesCompleted}
-                </div>
-              </div>
-            </button>
-          );
-        })}
+              </button>
+            );
+          })
+        )}
       </div>
     </aside>
   );
